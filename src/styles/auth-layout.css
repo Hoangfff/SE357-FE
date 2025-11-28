@@ -1,0 +1,131 @@
+.auth-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #fff;
+}
+
+.auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.auth-branding {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-text h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.brand-text p {
+    margin: 0;
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.auth-welcome {
+    position: relative;
+    z-index: 1;
+    max-width: 500px;
+}
+
+.auth-welcome h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    line-height: 1.2;
+}
+
+.auth-description {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    opacity: 0.95;
+    margin: 0;
+}
+
+.auth-stats {
+    display: flex;
+    gap: 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-item h3 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-item p {
+    font-size: 1rem;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.auth-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: #fafafa;
+}
+
+@media (max-width: 968px) {
+    .auth-layout {
+        flex-direction: column;
+    }
+
+    .auth-left {
+        min-height: 40vh;
+        padding: 2rem;
+    }
+
+    .auth-welcome h2 {
+        font-size: 2rem;
+    }
+
+    .auth-stats {
+        gap: 2rem;
+    }
+
+    .stat-item h3 {
+        font-size: 2rem;
+    }
+}
