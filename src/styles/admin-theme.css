@@ -1,0 +1,20 @@
+:root {
+  /* Admin Dashboard Colors */
+  --admin-bg: #0F172A;
+  --admin-card-bg: #1E293B; /* Slightly lighter than bg for cards */
+  --primary: #7C3AED;
+  --secondary: #06B6D4;
+  --warning: #F59E0B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A3AED0;
+  
+  /* Sidebar Specifics */
+  --sidebar-width: 280px;
+  --sidebar-bg: #0F172A;
+}
+
+body.admin-mode {
+  background-color: var(--admin-bg);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif; /* Assuming a modern font */
+}

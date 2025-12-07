@@ -12,6 +12,8 @@ import LoginPage from './app/auth/login/page'
 // Import auth components
 import AuthLayout from './app/auth/layout'
 import RegisterPage from './app/auth/register/page'
+import AdminLayout from './app/admin/components/AdminLayout'
+import AccountsPage from './app/admin/accounts/page'
 
 // Create router with layout-based structure
 const router = createBrowserRouter([
@@ -53,11 +55,25 @@ const router = createBrowserRouter([
         path: 'settings',
         element: <div style={{ padding: '2rem' }}><h1>Settings</h1><p>Coming soon...</p></div>,
       },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
       {
-        path: 'admin',
+        index: true,
         element: <AdminPage />,
       },
-    ],
+      {
+        path: 'accounts',
+        element: <AccountsPage />,
+      },
+      {
+        path: '*',
+        element: <div style={{ padding: '2rem' }}><h1>Comming Soon</h1></div>
+      }
+    ]
   },
 ])
 

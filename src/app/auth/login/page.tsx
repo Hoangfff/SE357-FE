@@ -11,8 +11,19 @@ const LoginPage = () => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/home');
+
+        if (email === 'admin@gmail.com' && password === '123123') {
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userRole', 'admin');
+            navigate('/admin');
+        } else if (email === 'user@gmail.com' && password === '123123') {
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userRole', 'user');
+            navigate('/home');
+        } else {
+            // For demo purposes
+            alert('Invalid credentials! Try: \nAdmin: admin@gmail.com / 123123 \nUser: user@gmail.com / 123123');
+        }
     };
 
     return (
@@ -29,7 +40,7 @@ const LoginPage = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="johnsondoe@nomail.com"
+                        placeholder="admin@gmail.com"
                         required
                     />
                 </div>
