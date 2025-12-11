@@ -1,19 +1,59 @@
-// API configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// API configuration for Music Share System
+// Backend hosted on Render: https://music-share-system.onrender.com
+
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://music-share-system.onrender.com';
 
 export const ENDPOINTS = {
+    // Authentication endpoints
     auth: {
         login: '/auth/login',
         register: '/auth/register',
         logout: '/auth/logout',
+        refresh: '/auth/refresh',
+        me: '/auth/me',
     },
+
+    // Music/Tracks endpoints
     music: {
         tracks: '/tracks',
+        trackById: (id: string) => `/tracks/${id}`,
+        upload: '/tracks/upload',
+        search: '/tracks/search',
+        trending: '/tracks/trending',
         playlists: '/playlists',
+        playlistById: (id: string) => `/playlists/${id}`,
         albums: '/albums',
+        albumById: (id: string) => `/albums/${id}`,
     },
+
+    // User endpoints
     user: {
-        profile: '/user/profile',
-        favorites: '/user/favorites',
+        profile: '/users/profile',
+        profileById: (id: string) => `/users/${id}`,
+        favorites: '/users/favorites',
+        history: '/users/history',
+        settings: '/users/settings',
+    },
+
+    // Admin endpoints
+    admin: {
+        dashboard: '/admin/dashboard',
+        users: '/admin/users',
+        userById: (id: string) => `/admin/users/${id}`,
+        music: '/admin/music',
+        musicById: (id: string) => `/admin/music/${id}`,
+        reports: '/admin/reports',
+        reportById: (id: string) => `/admin/reports/${id}`,
+    },
+
+    // Reports endpoints
+    reports: {
+        create: '/reports',
+        getAll: '/reports',
+        byId: (id: string) => `/reports/${id}`,
+        resolve: (id: string) => `/reports/${id}/resolve`,
     },
 } as const;
+
+// Helper function to construct full URL
+export const getFullUrl = (endpoint: string): string => `${API_BASE_URL}${endpoint}`;
