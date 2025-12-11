@@ -67,10 +67,13 @@
 
 .password-field {
     position: relative;
+    width: 100%;
 }
 
 .password-field input {
+    width: 100%;
     padding-right: 3rem;
+    box-sizing: border-box;
 }
 
 .toggle-password {

@@ -1,3 +1,4 @@
+// export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://music-share-system.onrender.com';
 // API configuration - uses /api proxy in development to bypass CORS
 export const API_BASE_URL = '/api';
 
