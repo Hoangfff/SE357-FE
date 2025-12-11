@@ -13,18 +13,33 @@ src/
 │   ├── admin/
 │   │   └── page.tsx       # Admin dashboard
 │   └── auth/
-│       └── login/
-│           └── page.tsx   # Login page
+│       ├── layout.tsx     # Auth layout
+│       ├── login/
+│       │   └── page.tsx   # Login page
+│       ├── register/
+│       │   └── page.tsx   # Register page
+│       ├── verify-otp/
+│       │   └── page.tsx   # OTP verification page
+│       └── forgot-password/
+│           └── page.tsx   # Forgot password flow
 │
 ├── components/            # Reusable components
 │   ├── Sidebar.tsx       # Navigation sidebar
 │   ├── MusicPlayer.tsx   # Music player controls
 │   └── TrackList.tsx     # Track listing
 │
+├── config/               # Configuration
+│   └── api.ts           # API endpoints configuration
+│
+├── services/             # API services
+│   ├── authService.ts   # Authentication API calls
+│   └── musicService.ts  # Music-related API calls
+│
 ├── styles/               # CSS modules
 │   ├── layout.css       # Layout styles
 │   ├── page.css         # Page styles
-│   ├── auth.css         # Authentication styles
+│   ├── auth-form.css    # Auth form styles
+│   ├── forgot-password.css # Forgot password styles
 │   └── admin.css        # Admin dashboard styles
 │
 ├── lib/                  # Utilities

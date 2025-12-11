@@ -5,17 +5,19 @@
 }
 
 .auth-left {
-    flex: 1;
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
-    padding: 3rem;
+    flex: 4;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.85) 0%, rgba(168, 85, 247, 0.8) 50%, rgba(192, 132, 252, 0.75) 100%);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     color: white;
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
 }
 
+/* Background image layer */
 .auth-left::before {
     content: '';
     position: absolute;
@@ -23,9 +25,21 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-    pointer-events: none;
+    background:
+        url('/auth-bg-dj.jpg') center center / cover no-repeat;
+    z-index: 0;
+}
+
+/* Gradient overlay */
+.auth-left::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75) 0%, rgba(168, 85, 247, 0.65) 50%, rgba(192, 132, 252, 0.55) 100%);
+    z-index: 1;
 }
 
 .auth-branding {
@@ -33,12 +47,12 @@
     align-items: center;
     gap: 1rem;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .brand-logo {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -48,32 +62,36 @@
 }
 
 .brand-text h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
 }
 
 .brand-text p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     opacity: 0.9;
 }
 
 .auth-welcome {
     position: relative;
-    z-index: 1;
-    max-width: 500px;
+    z-index: 2;
+    max-width: 450px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .auth-welcome h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     margin: 0 0 1rem 0;
     line-height: 1.2;
 }
 
 .auth-description {
-    font-size: 1.125rem;
+    font-size: 1rem;
     line-height: 1.6;
     opacity: 0.95;
     margin: 0;
@@ -81,30 +99,32 @@
 
 .auth-stats {
     display: flex;
-    gap: 3rem;
+    gap: 2rem;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .stat-item h3 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
     margin: 0 0 0.25rem 0;
 }
 
 .stat-item p {
-    font-size: 1rem;
+    font-size: 0.875rem;
     margin: 0;
     opacity: 0.9;
 }
 
 .auth-right {
-    flex: 1;
+    flex: 2;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     background: #fafafa;
+    min-height: 100vh;
+    overflow-y: auto;
 }
 
 @media (max-width: 968px) {
@@ -113,19 +133,42 @@
     }
 
     .auth-left {
-        min-height: 40vh;
-        padding: 2rem;
+        min-height: auto;
+        padding: 1.5rem;
     }
 
     .auth-welcome h2 {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
 
     .auth-stats {
-        gap: 2rem;
+        gap: 1.5rem;
     }
 
     .stat-item h3 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+    }
+
+    .auth-right {
+        min-height: auto;
+        padding: 1.5rem;
+    }
+}
+
+@media (max-height: 700px) {
+    .auth-left {
+        padding: 1.5rem;
+    }
+
+    .auth-welcome h2 {
+        font-size: 1.5rem;
+    }
+
+    .auth-description {
+        font-size: 0.875rem;
+    }
+
+    .stat-item h3 {
+        font-size: 1.5rem;
     }
 }

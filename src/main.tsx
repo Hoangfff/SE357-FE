@@ -12,8 +12,16 @@ import LoginPage from './app/auth/login/page'
 // Import auth components
 import AuthLayout from './app/auth/layout'
 import RegisterPage from './app/auth/register/page'
+import ForgotPasswordPage from './app/auth/forgot-password/page'
+import VerifyOtpPage from './app/auth/verify-otp/page'
 import AdminLayout from './app/admin/components/AdminLayout'
 import AccountsPage from './app/admin/accounts/page'
+
+// Import new pages
+import PlaylistsPage from './app/playlists/page'
+import LikedSongsPage from './app/liked-songs/page'
+import AlbumsPage from './app/albums/page'
+import ArtistsPage from './app/artists/page'
 
 // Create router with layout-based structure
 const router = createBrowserRouter([
@@ -33,6 +41,14 @@ const router = createBrowserRouter([
         path: 'register',
         element: <RegisterPage />,
       },
+      {
+        path: 'forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'verify-otp',
+        element: <VerifyOtpPage />,
+      },
     ],
   },
   {
@@ -42,6 +58,22 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'playlists',
+        element: <PlaylistsPage />,
+      },
+      {
+        path: 'liked-songs',
+        element: <LikedSongsPage />,
+      },
+      {
+        path: 'albums',
+        element: <AlbumsPage />,
+      },
+      {
+        path: 'artists',
+        element: <ArtistsPage />,
       },
       {
         path: 'search',
