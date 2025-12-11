@@ -18,9 +18,9 @@ export interface ApiError {
     errors?: Record<string, string[]>;
 }
 
-// Token management
-const TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
+// Token management - must match keys used by authService
+const TOKEN_KEY = 'accessToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
 
 export const tokenManager = {
     getToken: (): string | null => localStorage.getItem(TOKEN_KEY),
@@ -46,17 +46,22 @@ interface RequestConfig extends Omit<RequestInit, 'body'> {
 
 // Build URL with query parameters
 function buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
-    const url = new URL(`${API_BASE_URL}${endpoint}`);
+    let url = `${API_BASE_URL}${endpoint}`;
 
     if (params) {
+        const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined) {
-                url.searchParams.append(key, String(value));
+                searchParams.append(key, String(value));
             }
         });
+        const queryString = searchParams.toString();
+        if (queryString) {
+            url += `?${queryString}`;
+        }
     }
 
-    return url.toString();
+    return url;
 }
 
 // Create headers with auth token
