@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '../../../services/authService';
 import '../../../styles/auth-form.css';
 
 const RegisterPage = () => {
@@ -7,12 +8,30 @@ const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/home');
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await authService.register(email, password, name);
+
+            // Registration successful, redirect to OTP verification
+            navigate('/auth/verify-otp', {
+                state: {
+                    email,
+                    message: response.message
+                }
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Đăng ký thất bại. Vui lòng thử lại.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -23,14 +42,28 @@ const RegisterPage = () => {
             </div>
 
             <form className="auth-form-content" onSubmit={handleRegister}>
+                {error && (
+                    <div className="error-message" style={{
+                        color: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '16px',
+                        textAlign: 'center'
+                    }}>
+                        {error}
+                    </div>
+                )}
+
                 <div className="form-field">
                     <label>Họ và tên</label>
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Johnson Doe"
+                        placeholder="Nguyễn Văn A"
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -40,8 +73,9 @@ const RegisterPage = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="johnsondoe@nomail.com"
+                        placeholder="email@example.com"
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -54,6 +88,8 @@ const RegisterPage = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••••"
                             required
+                            minLength={6}
+                            disabled={isLoading}
                         />
                         <button
                             type="button"
@@ -65,8 +101,13 @@ const RegisterPage = () => {
                     </div>
                 </div>
 
-                <button type="submit" className="submit-button">
-                    BẮT ĐẦU
+                <button
+                    type="submit"
+                    className="submit-button"
+                    disabled={isLoading}
+                    style={{ opacity: isLoading ? 0.7 : 1 }}
+                >
+                    {isLoading ? 'ĐANG XỬ LÝ...' : 'BẮT ĐẦU'}
                 </button>
 
                 <div className="divider">

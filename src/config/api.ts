@@ -1,7 +1,5 @@
-// API configuration for Music Share System
-// Backend hosted on Render: https://music-share-system.onrender.com
-
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://music-share-system.onrender.com';
+// API configuration - uses /api proxy in development to bypass CORS
+export const API_BASE_URL = '/api';
 
 export const ENDPOINTS = {
     // Authentication endpoints
@@ -11,6 +9,10 @@ export const ENDPOINTS = {
         logout: '/auth/logout',
         refresh: '/auth/refresh',
         me: '/auth/me',
+        verifyOtp: '/auth/verify-otp',
+        forgotPassword: '/auth/forgot-password',
+        verifyResetOtp: '/auth/verify-reset-otp',
+        resetPassword: '/auth/reset-password',
     },
 
     // Music/Tracks endpoints

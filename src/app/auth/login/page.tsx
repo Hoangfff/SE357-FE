@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { authService } from '../../../services/authService';
 import '../../../styles/auth-form.css';
 
 const LoginPage = () => {
@@ -7,22 +8,65 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const handleLogin = (e: React.FormEvent) => {
+    // Check for success message from OTP verification
+    useEffect(() => {
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
+        }
+
+        // Load remembered email
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            setEmail(rememberedEmail);
+            setRememberMe(true);
+        }
+    }, [location.state]);
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
+        setError('');
 
-        if (email === 'admin@gmail.com' && password === '123123') {
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userRole', 'admin');
-            navigate('/admin');
-        } else if (email === 'user@gmail.com' && password === '123123') {
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userRole', 'user');
-            navigate('/home');
-        } else {
-            // For demo purposes
-            alert('Invalid credentials! Try: \nAdmin: admin@gmail.com / 123123 \nUser: user@gmail.com / 123123');
+        try {
+            const response = await authService.login(email, password);
+
+            // Store the token
+            authService.storeToken(response.accessToken);
+
+            // Handle remember me
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
+            // Decode token to get user role
+            const decoded = authService.decodeToken(response.accessToken);
+
+            if (decoded) {
+                localStorage.setItem('userRole', decoded.role);
+                localStorage.setItem('userEmail', decoded.email);
+
+                // Navigate based on role
+                if (decoded.role === 'ADMIN') {
+                    navigate('/admin');
+                } else {
+                    navigate('/home');
+                }
+            } else {
+                // Default navigation if decode fails
+                navigate('/home');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -34,19 +78,46 @@ const LoginPage = () => {
             </div>
 
             <form className="auth-form-content" onSubmit={handleLogin}>
+                {error && (
+                    <div className="error-message" style={{
+                        color: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '16px',
+                        textAlign: 'center'
+                    }}>
+                        {error}
+                    </div>
+                )}
+
+                {successMessage && (
+                    <div className="success-message" style={{
+                        color: '#51cf66',
+                        backgroundColor: 'rgba(81, 207, 102, 0.1)',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '16px',
+                        textAlign: 'center'
+                    }}>
+                        {successMessage}
+                    </div>
+                )}
+
                 <div className="form-field">
                     <label>Email</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="admin@gmail.com"
+                        placeholder="email@example.com"
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
                 <div className="form-field">
-                    <label>Password</label>
+                    <label>Mật khẩu</label>
                     <div className="password-field">
                         <input
                             type={showPassword ? "text" : "password"}
@@ -54,6 +125,7 @@ const LoginPage = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••••"
                             required
+                            disabled={isLoading}
                         />
                         <button
                             type="button"
@@ -72,13 +144,18 @@ const LoginPage = () => {
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        <span>Remember me</span>
+                        <span>Nhớ tôi</span>
                     </label>
-                    <a href="#" className="forgot-link">Quên mật khẩu?</a>
+                    <Link to="/auth/forgot-password" className="forgot-link">Quên mật khẩu?</Link>
                 </div>
 
-                <button type="submit" className="submit-button">
-                    TIẾP TỤC
+                <button
+                    type="submit"
+                    className="submit-button"
+                    disabled={isLoading}
+                    style={{ opacity: isLoading ? 0.7 : 1 }}
+                >
+                    {isLoading ? 'ĐANG ĐĂNG NHẬP...' : 'TIẾP TỤC'}
                 </button>
 
                 <div className="divider">
