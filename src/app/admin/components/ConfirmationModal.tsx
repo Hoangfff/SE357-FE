@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
     confirmText?: string;
     cancelText?: string;
     type?: 'warning' | 'danger' | 'info';
+    isLoading?: boolean;
 }
 
 const ConfirmationModal = ({
@@ -22,15 +23,16 @@ const ConfirmationModal = ({
     message,
     confirmText = 'Yes',
     cancelText = 'No',
-    type = 'warning'
+    type = 'warning',
+    isLoading = false
 }: ConfirmationModalProps) => {
     if (!isOpen) return null;
 
     return (
-        <div style={overlayStyle} onClick={onClose}>
+        <div style={overlayStyle} onClick={isLoading ? undefined : onClose}>
             <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
                 {/* Close Button */}
-                <button style={closeButtonStyle} onClick={onClose}>
+                <button style={closeButtonStyle} onClick={onClose} disabled={isLoading}>
                     <X size={20} />
                 </button>
 
@@ -48,17 +50,28 @@ const ConfirmationModal = ({
 
                 {/* Action Buttons */}
                 <div style={buttonContainerStyle}>
-                    <button style={cancelButtonStyle} onClick={onClose}>
+                    <button
+                        style={{
+                            ...cancelButtonStyle,
+                            opacity: isLoading ? 0.5 : 1,
+                            cursor: isLoading ? 'not-allowed' : 'pointer'
+                        }}
+                        onClick={onClose}
+                        disabled={isLoading}
+                    >
                         {cancelText}
                     </button>
                     <button
                         style={{
                             ...confirmButtonStyle,
-                            backgroundColor: type === 'danger' ? '#F59E0B' : 'var(--primary)'
+                            backgroundColor: type === 'danger' ? '#F59E0B' : 'var(--primary)',
+                            opacity: isLoading ? 0.5 : 1,
+                            cursor: isLoading ? 'not-allowed' : 'pointer'
                         }}
                         onClick={onConfirm}
+                        disabled={isLoading}
                     >
-                        {confirmText}
+                        {isLoading ? 'Processing...' : confirmText}
                     </button>
                 </div>
             </div>

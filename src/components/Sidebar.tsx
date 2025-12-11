@@ -29,10 +29,6 @@ const Sidebar = () => {
                     <span>Settings</span>
                 </NavLink>
 
-                <NavLink to="/home/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-                    <User />
-                    <span>Admin</span>
-                </NavLink>
             </nav>
 
             <div className="sidebar-footer">

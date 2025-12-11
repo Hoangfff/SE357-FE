@@ -40,10 +40,19 @@ export const ENDPOINTS = {
         dashboard: '/admin/dashboard',
         users: '/admin/users',
         userById: (id: string) => `/admin/users/${id}`,
+        userDetails: (id: string) => `/admin/users/${id}/details`,
         music: '/admin/music',
         musicById: (id: string) => `/admin/music/${id}`,
         reports: '/admin/reports',
         reportById: (id: string) => `/admin/reports/${id}`,
+        reportResolve: (id: string) => `/admin/reports/${id}/resolve`,
+        // Artist applications
+        artistApplications: '/admin/artist-applications',
+        processApplication: (id: string) => `/admin/artist-applications/${id}/process`,
+        // Account management
+        searchAccounts: '/admin/accounts/search',
+        assignRole: '/admin/accounts/assign-role',
+        deleteAccount: (id: string) => `/admin/accounts/${id}`,
     },
 
     // Reports endpoints
