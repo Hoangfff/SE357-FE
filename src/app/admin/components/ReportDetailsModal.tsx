@@ -1,18 +1,8 @@
 'use client';
 
 import React from 'react';
-import { X } from 'lucide-react';
-
-interface Report {
-    id: string;
-    reporterId: string;
-    createdAt: string;
-    type: string;
-    status: string;
-    targetId: string;
-    reason: string;
-    description: string;
-}
+import { X, User, Calendar, FileText, AlertCircle, Music, MessageSquare } from 'lucide-react';
+import type { Report } from '../../../types/admin';
 
 interface ReportDetailsModalProps {
     isOpen: boolean;
@@ -29,6 +19,44 @@ const ReportDetailsModal = ({
 }: ReportDetailsModalProps) => {
     if (!isOpen || !report) return null;
 
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getTypeIcon = (type: string) => {
+        switch (type) {
+            case 'MUSIC': return <Music size={16} />;
+            case 'USER': return <User size={16} />;
+            case 'COMMENT': return <MessageSquare size={16} />;
+            default: return <FileText size={16} />;
+        }
+    };
+
+    const getTargetInfo = () => {
+        if (report.music) {
+            return { label: 'Reported Music', value: report.music.title, id: report.musicId };
+        }
+        if (report.usersReportsReportedUserIdTousers) {
+            return {
+                label: 'Reported User',
+                value: report.usersReportsReportedUserIdTousers.name,
+                id: report.reportedUserId
+            };
+        }
+        if (report.artistProfiles) {
+            return { label: 'Reported Artist', value: report.artistProfiles.stageName, id: report.artistId };
+        }
+        return null;
+    };
+
+    const targetInfo = getTargetInfo();
+
     return (
         <div style={overlayStyle} onClick={onClose}>
             <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
@@ -40,79 +68,112 @@ const ReportDetailsModal = ({
                 {/* Title */}
                 <h2 style={titleStyle}>Report Details</h2>
 
-                {/* Form Fields - 2 Column Layout */}
+                {/* Status Badge */}
+                <div style={statusContainerStyle}>
+                    <span style={{
+                        ...statusBadgeStyle,
+                        backgroundColor: report.status === 'RESOLVED'
+                            ? 'rgba(34, 197, 94, 0.2)'
+                            : 'rgba(234, 179, 8, 0.2)',
+                        color: report.status === 'RESOLVED' ? '#22c55e' : '#eab308'
+                    }}>
+                        {report.status}
+                    </span>
+                </div>
+
+                {/* Form Fields */}
                 <div style={formContainerStyle}>
                     {/* Row 1: Type & Created At */}
                     <div style={rowStyle}>
-                        <div style={inputGroupStyle}>
-                            <input
-                                type="text"
-                                value={report.type}
-                                readOnly
-                                style={inputStyle}
-                            />
-                            <span style={inputLabelStyle}>Type</span>
+                        <div style={fieldGroupStyle}>
+                            <div style={fieldIconStyle}>
+                                {getTypeIcon(report.reportType)}
+                            </div>
+                            <div style={fieldContentStyle}>
+                                <span style={fieldLabelStyle}>Report Type</span>
+                                <span style={fieldValueStyle}>{report.reportType}</span>
+                            </div>
                         </div>
-                        <div style={inputGroupStyle}>
-                            <input
-                                type="text"
-                                value={report.createdAt}
-                                readOnly
-                                style={inputStyle}
-                            />
-                            <span style={inputLabelStyle}>Created At</span>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Target Id & Reporter Id */}
-                    <div style={rowStyle}>
-                        <div style={inputGroupStyle}>
-                            <input
-                                type="text"
-                                value={report.targetId}
-                                readOnly
-                                style={inputStyle}
-                            />
-                            <span style={inputLabelStyle}>Target Id</span>
-                        </div>
-                        <div style={inputGroupStyle}>
-                            <input
-                                type="text"
-                                value={report.reporterId}
-                                readOnly
-                                style={inputStyle}
-                            />
-                            <span style={inputLabelStyle}>Reporter Id</span>
+                        <div style={fieldGroupStyle}>
+                            <div style={fieldIconStyle}>
+                                <Calendar size={16} />
+                            </div>
+                            <div style={fieldContentStyle}>
+                                <span style={fieldLabelStyle}>Reported On</span>
+                                <span style={fieldValueStyle}>{formatDate(report.reportDate)}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Row 3: Reason */}
-                    <div style={inputGroupStyle}>
-                        <input
-                            type="text"
-                            value={report.reason}
-                            readOnly
-                            style={inputStyle}
-                        />
-                        <span style={inputLabelStyle}>Reason</span>
+                    {/* Reporter Info */}
+                    <div style={fieldGroupStyle}>
+                        <div style={fieldIconStyle}>
+                            <User size={16} />
+                        </div>
+                        <div style={fieldContentStyle}>
+                            <span style={fieldLabelStyle}>Reporter</span>
+                            <span style={fieldValueStyle}>
+                                {report.usersReportsReporterUserIdTousers?.name || `User #${report.reporterId}`}
+                                {report.usersReportsReporterUserIdTousers?.email && (
+                                    <span style={{ color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                                        ({report.usersReportsReporterUserIdTousers.email})
+                                    </span>
+                                )}
+                            </span>
+                        </div>
                     </div>
 
-                    {/* Row 4: Description (Large) */}
-                    <div style={textareaGroupStyle}>
-                        <textarea
-                            value={report.description}
-                            readOnly
-                            style={textareaStyle}
-                        />
+                    {/* Target Info */}
+                    {targetInfo && (
+                        <div style={fieldGroupStyle}>
+                            <div style={fieldIconStyle}>
+                                <AlertCircle size={16} />
+                            </div>
+                            <div style={fieldContentStyle}>
+                                <span style={fieldLabelStyle}>{targetInfo.label}</span>
+                                <span style={fieldValueStyle}>
+                                    {targetInfo.value} (ID: {targetInfo.id})
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Reason */}
+                    <div style={fieldGroupStyle}>
+                        <div style={fieldIconStyle}>
+                            <FileText size={16} />
+                        </div>
+                        <div style={fieldContentStyle}>
+                            <span style={fieldLabelStyle}>Reason</span>
+                            <span style={fieldValueStyle}>{report.reason}</span>
+                        </div>
                     </div>
+
+                    {/* Description */}
+                    {report.description && (
+                        <div style={descriptionContainerStyle}>
+                            <span style={fieldLabelStyle}>Description</span>
+                            <p style={descriptionTextStyle}>{report.description}</p>
+                        </div>
+                    )}
+
+                    {/* Resolution Notes (if resolved) */}
+                    {report.status === 'RESOLVED' && report.resolutionNotes && (
+                        <div style={resolutionContainerStyle}>
+                            <span style={fieldLabelStyle}>Resolution Notes</span>
+                            <p style={resolutionTextStyle}>{report.resolutionNotes}</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Action Button */}
-                <div style={buttonContainerStyle}>
-                    <button style={resolveButtonStyle} onClick={onMarkResolved}>
-                        Mark As Resolved
-                    </button>
-                </div>
+                {/* Action Button - Only show for pending reports */}
+                {report.status === 'PENDING' && (
+                    <div style={buttonContainerStyle}>
+                        <button style={resolveButtonStyle} onClick={onMarkResolved}>
+                            Mark As Resolved
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -137,6 +198,8 @@ const modalStyle: React.CSSProperties = {
     padding: '2rem',
     maxWidth: '600px',
     width: '90%',
+    maxHeight: '80vh',
+    overflowY: 'auto',
     position: 'relative',
     border: '1px solid rgba(255, 255, 255, 0.1)'
 };
@@ -157,15 +220,28 @@ const titleStyle: React.CSSProperties = {
     fontSize: '1.5rem',
     fontWeight: 600,
     textAlign: 'center',
-    marginBottom: '2rem',
-    fontStyle: 'italic'
+    marginBottom: '0.5rem'
+};
+
+const statusContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '1.5rem'
+};
+
+const statusBadgeStyle: React.CSSProperties = {
+    padding: '0.25rem 1rem',
+    borderRadius: '1rem',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    textTransform: 'uppercase'
 };
 
 const formContainerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
-    marginBottom: '2rem'
+    marginBottom: '1.5rem'
 };
 
 const rowStyle: React.CSSProperties = {
@@ -174,46 +250,65 @@ const rowStyle: React.CSSProperties = {
     gap: '1rem'
 };
 
-const inputGroupStyle: React.CSSProperties = {
+const fieldGroupStyle: React.CSSProperties = {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: '1rem',
+    padding: '0.75rem 1rem',
     backgroundColor: 'rgba(30, 41, 59, 0.6)',
-    border: '1px solid var(--primary)',
     borderRadius: '0.5rem',
-    padding: '0.75rem 1rem'
+    border: '1px solid rgba(255, 255, 255, 0.05)'
 };
 
-const inputStyle: React.CSSProperties = {
-    background: 'transparent',
-    border: 'none',
-    outline: 'none',
-    color: 'var(--text-primary)',
-    fontSize: '0.875rem',
-    width: '100%'
+const fieldIconStyle: React.CSSProperties = {
+    color: 'var(--primary)',
+    marginTop: '2px'
 };
 
-const inputLabelStyle: React.CSSProperties = {
+const fieldContentStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+    flex: 1
+};
+
+const fieldLabelStyle: React.CSSProperties = {
     color: 'var(--text-secondary)',
     fontSize: '0.75rem',
-    whiteSpace: 'nowrap'
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
 };
 
-const textareaGroupStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(30, 41, 59, 0.6)',
-    border: '1px solid var(--primary)',
-    borderRadius: '0.5rem',
-    padding: '0.75rem 1rem'
-};
-
-const textareaStyle: React.CSSProperties = {
-    background: 'transparent',
-    border: 'none',
-    outline: 'none',
+const fieldValueStyle: React.CSSProperties = {
     color: 'var(--text-primary)',
-    fontSize: '0.875rem',
-    width: '100%',
-    minHeight: '100px',
-    resize: 'none'
+    fontSize: '0.9rem'
+};
+
+const descriptionContainerStyle: React.CSSProperties = {
+    padding: '0.75rem 1rem',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    borderRadius: '0.5rem',
+    border: '1px solid rgba(255, 255, 255, 0.05)'
+};
+
+const descriptionTextStyle: React.CSSProperties = {
+    color: 'var(--text-primary)',
+    fontSize: '0.9rem',
+    marginTop: '0.5rem',
+    lineHeight: 1.6
+};
+
+const resolutionContainerStyle: React.CSSProperties = {
+    padding: '0.75rem 1rem',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: '0.5rem',
+    border: '1px solid rgba(34, 197, 94, 0.2)'
+};
+
+const resolutionTextStyle: React.CSSProperties = {
+    color: '#22c55e',
+    fontSize: '0.9rem',
+    marginTop: '0.5rem'
 };
 
 const buttonContainerStyle: React.CSSProperties = {

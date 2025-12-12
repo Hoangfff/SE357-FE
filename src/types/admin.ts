@@ -53,11 +53,11 @@ export interface ArtistApplicationFilter {
 
 // Report types
 export type ReportStatus = 'PENDING' | 'RESOLVED';
-export type ReportType = 'MUSIC' | 'USER' | 'ARTIST' | 'OTHER';
+export type ReportType = 'MUSIC' | 'USER' | 'COMMENT' | 'PLAYLIST';
 
 export interface Report {
     id: number;
-    reporterId: number;
+    reporterUserId: number;
     reportedUserId?: number;
     musicId?: number;
     artistId?: number;
@@ -67,13 +67,13 @@ export interface Report {
     status: ReportStatus;
     resolutionNotes?: string;
     reportDate: string;
-    // Nested data
-    reporterUser?: {
+    // Nested data from backend (camelCase transformed from snake_case)
+    usersReportsReporterUserIdTousers?: {
         id: number;
         name: string;
         email: string;
     };
-    reportedUser?: {
+    usersReportsReportedUserIdTousers?: {
         id: number;
         name: string;
         email: string;
@@ -81,11 +81,17 @@ export interface Report {
     music?: {
         id: number;
         title: string;
+        artistProfiles?: {
+            id: number;
+            stageName: string;
+        };
     };
-    artistProfile?: {
+    artistProfiles?: {
         id: number;
         stageName: string;
     };
+    // Compatibility aliases
+    reporterId?: number;
 }
 
 export interface ReportsResponse {
