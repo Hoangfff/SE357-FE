@@ -65,6 +65,22 @@ export const ENDPOINTS = {
         byId: (id: string) => `/reports/${id}`,
         resolve: (id: string) => `/reports/${id}/resolve`,
     },
+
+    // Artist endpoints
+    artist: {
+        // Music management
+        music: '/artist/music',
+        musicById: (id: number) => `/artist/music/${id}`,
+        // Album management
+        albums: '/artist/albums',
+        albumById: (id: number) => `/artist/albums/${id}`,
+        albumTracks: (albumId: number) => `/artist/albums/${albumId}/tracks`,
+        removeTrack: (albumId: number, trackId: number) => `/artist/albums/${albumId}/tracks/${trackId}`,
+        // Analytics
+        analytics: '/artist/analytics',
+        // Profile
+        profile: '/artist/profile',
+    },
 } as const;
 
 // Helper function to construct full URL
