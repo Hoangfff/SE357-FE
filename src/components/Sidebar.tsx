@@ -1,8 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Playlist, Heart, Album, Artist, Home, Search } from '../lib/icons';
+import { Playlist, Heart, Album, Artist, Music, Performance, UserCircle } from '../lib/icons';
 import '../styles/sidebar.css';
 
 const Sidebar = () => {
+    // Get user role from localStorage (case-insensitive check)
+    const userRole = localStorage.getItem('userRole');
+    const isArtist = userRole?.toUpperCase() === 'ARTIST';
+
     return (
         <aside className="spotify-sidebar">
             <div className="sidebar-logo">
@@ -36,6 +40,35 @@ const Sidebar = () => {
                     <Artist />
                     <span>Artists</span>
                 </NavLink>
+
+                {/* For Artist Section - Only visible for artist role */}
+                {isArtist && (
+                    <>
+                        <div className="sidebar-divider">
+                            <span className="sidebar-section-label">For Artist</span>
+                        </div>
+
+                        <NavLink to="/home/artist/albums" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <Album />
+                            <span>My Albums</span>
+                        </NavLink>
+
+                        <NavLink to="/home/artist/music" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <Music />
+                            <span>My Musics</span>
+                        </NavLink>
+
+                        <NavLink to="/home/artist/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <UserCircle />
+                            <span>Artist Profile</span>
+                        </NavLink>
+
+                        <NavLink to="/home/artist/performance" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <Performance />
+                            <span>My Performance</span>
+                        </NavLink>
+                    </>
+                )}
             </nav>
         </aside>
     );
