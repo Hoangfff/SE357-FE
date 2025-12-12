@@ -8,8 +8,10 @@ import { ENDPOINTS } from '../config/api';
 import type {
     Album,
     Track,
+    ArtistProfile,
     CreateAlbumRequest,
     UpdateAlbumRequest,
+    UpdateProfileRequest,
     AddTracksToAlbumRequest,
     AlbumResponse,
     TracksResponse,
@@ -127,6 +129,31 @@ export const artistService = {
         window.dispatchEvent(new CustomEvent('music:queue', {
             detail: { tracks }
         }));
+    },
+
+    // ==================== Profile ====================
+
+    /**
+     * Get the logged-in artist's profile
+     */
+    async getProfile(): Promise<ArtistProfile> {
+        return apiClient.get<ArtistProfile>(ENDPOINTS.artist.profile);
+    },
+
+    /**
+     * Update the artist's profile
+     */
+    async updateProfile(data: UpdateProfileRequest): Promise<MessageResponse> {
+        return apiClient.put<MessageResponse>(ENDPOINTS.artist.profile, data as Record<string, unknown>);
+    },
+
+    /**
+     * Upload profile photo
+     */
+    async uploadProfilePhoto(file: File): Promise<{ photoUrl: string }> {
+        const formData = new FormData();
+        formData.append('photo', file);
+        return apiClient.post<{ photoUrl: string }>(`${ENDPOINTS.artist.profile}/photo`, formData);
     },
 };
 

@@ -68,6 +68,12 @@ export interface AddTracksToAlbumRequest {
     trackOrder?: number[];
 }
 
+export interface UpdateProfileRequest {
+    stageName?: string;
+    bio?: string;
+    socialLinks?: string;
+}
+
 // API Response types
 export interface AlbumResponse {
     message: string;
