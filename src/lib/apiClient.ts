@@ -1,9 +1,9 @@
 /**
  * API Client - A lightweight fetch wrapper for making HTTP requests
- * Provides consistent error handling, auth token management, and request/response processing
+ * Provides consistent error handling, auth token management, auto-refresh, and request/response processing
  */
 
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, ENDPOINTS } from '../config/api';
 
 // Types for API responses and errors
 export interface ApiResponse<T> {
@@ -34,6 +34,9 @@ export const tokenManager = {
     clearAll: (): void => {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userEmail');
     }
 };
 
@@ -42,7 +45,12 @@ interface RequestConfig extends Omit<RequestInit, 'body'> {
     body?: Record<string, unknown> | FormData;
     params?: Record<string, string | number | boolean | undefined>;
     skipAuth?: boolean;
+    _isRetry?: boolean; // Internal flag to prevent infinite refresh loops
 }
+
+// Track if a refresh is in progress to prevent multiple simultaneous refreshes
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
 
 // Build URL with query parameters
 function buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
@@ -96,8 +104,60 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return response.text() as unknown as T;
 }
 
+// Refresh the access token using the refresh token
+async function refreshAccessToken(): Promise<boolean> {
+    // If already refreshing, wait for that to complete
+    if (isRefreshing && refreshPromise) {
+        return refreshPromise;
+    }
+
+    const refreshToken = tokenManager.getRefreshToken();
+    if (!refreshToken) {
+        console.log('[API Client] No refresh token available');
+        return false;
+    }
+
+    isRefreshing = true;
+    console.log('[API Client] Attempting to refresh access token...');
+
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch(buildUrl(ENDPOINTS.auth.refresh), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken }),
+            });
+
+            if (!response.ok) {
+                console.log('[API Client] Refresh failed with status:', response.status);
+                return false;
+            }
+
+            const data = await response.json();
+
+            if (data.accessToken) {
+                tokenManager.setToken(data.accessToken);
+                console.log('[API Client] Access token refreshed successfully');
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            console.error('[API Client] Refresh token error:', error);
+            return false;
+        } finally {
+            isRefreshing = false;
+            refreshPromise = null;
+        }
+    })();
+
+    return refreshPromise;
+}
+
 // Handle API errors
-async function handleError(response: Response): Promise<never> {
+async function handleError(response: Response, config: RequestConfig): Promise<never> {
     let errorData: ApiError;
 
     try {
@@ -114,17 +174,31 @@ async function handleError(response: Response): Promise<never> {
         };
     }
 
-    // Handle 401 Unauthorized - clear tokens and redirect to login
-    if (response.status === 401) {
-        tokenManager.clearAll();
-        // Optionally dispatch an event for the app to handle
-        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    // Handle 401 Unauthorized - try to refresh token first
+    if (response.status === 401 && !config._isRetry && !config.skipAuth) {
+        console.log('[API Client] Got 401, attempting token refresh...');
+
+        const refreshed = await refreshAccessToken();
+
+        if (refreshed) {
+            // Retry the original request with the new token
+            console.log('[API Client] Retrying original request after refresh');
+            // We throw a special error to signal retry
+            const retryError = new Error('RETRY_REQUEST') as Error & { shouldRetry: boolean };
+            retryError.shouldRetry = true;
+            throw retryError;
+        } else {
+            // Refresh failed, clear tokens and redirect to login
+            console.log('[API Client] Refresh failed, clearing tokens');
+            tokenManager.clearAll();
+            window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
     }
 
     throw errorData;
 }
 
-// Main request function
+// Main request function with auto-refresh
 async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
     const url = buildUrl(endpoint, config.params);
     const headers = createHeaders(config);
@@ -143,11 +217,17 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
         const response = await fetch(url, fetchConfig);
 
         if (!response.ok) {
-            await handleError(response);
+            await handleError(response, config);
         }
 
         return parseResponse<T>(response);
     } catch (error) {
+        // Check if we should retry after token refresh
+        if ((error as Error & { shouldRetry?: boolean }).shouldRetry) {
+            // Retry the request with the new token
+            return request<T>(endpoint, { ...config, _isRetry: true });
+        }
+
         // Re-throw ApiError as is
         if ((error as ApiError).statusCode) {
             throw error;
