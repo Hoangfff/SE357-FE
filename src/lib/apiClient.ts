@@ -255,8 +255,8 @@ export const apiClient = {
     patch: <T>(endpoint: string, body?: Record<string, unknown>, config?: Omit<RequestConfig, 'method' | 'body'>) =>
         request<T>(endpoint, { ...config, method: 'PATCH', body }),
 
-    delete: <T>(endpoint: string, config?: Omit<RequestConfig, 'method' | 'body'>) =>
-        request<T>(endpoint, { ...config, method: 'DELETE' }),
+    delete: <T>(endpoint: string, body?: Record<string, unknown>, config?: Omit<RequestConfig, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...config, method: 'DELETE', body }),
 };
 
 export default apiClient;

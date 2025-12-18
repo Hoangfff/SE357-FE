@@ -117,6 +117,7 @@ export interface AdminUser {
         id: number;
         stageName: string;
         status: 'ACTIVE' | 'INACTIVE';
+        photoUrl?: string;
     };
 }
 
