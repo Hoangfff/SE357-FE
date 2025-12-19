@@ -131,10 +131,10 @@ export const adminService = {
      * Delete account
      */
     async deleteAccount(userId: number): Promise<{ message: string }> {
-        return apiClient.delete<{ message: string }>(ENDPOINTS.admin.deleteAccount(String(userId)), {
-            // Note: Backend requires confirm: true in body, but DELETE typically doesn't have body
-            // This might need adjustment based on actual backend implementation
-        });
+        return apiClient.delete<{ message: string }>(
+            ENDPOINTS.admin.deleteAccount(String(userId)),
+            { confirm: true }
+        );
     },
 
     /**

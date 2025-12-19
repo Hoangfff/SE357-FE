@@ -9,6 +9,7 @@ export interface AuthResponse {
 
 export interface LoginResponse {
     accessToken: string;
+    refreshToken: string;
 }
 
 export interface ApiError {
@@ -143,6 +144,22 @@ export const authService = {
      */
     storeToken(token: string): void {
         localStorage.setItem('accessToken', token);
+        localStorage.setItem('isAuthenticated', 'true');
+    },
+
+    /**
+     * Store refresh token
+     */
+    storeRefreshToken(token: string): void {
+        localStorage.setItem('refreshToken', token);
+    },
+
+    /**
+     * Store both tokens at once
+     */
+    storeTokens(accessToken: string, refreshToken: string): void {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('isAuthenticated', 'true');
     },
 
