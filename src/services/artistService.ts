@@ -3,8 +3,8 @@
  * API methods for artist module operations
  */
 
-import { apiClient } from '../lib/apiClient';
-import { ENDPOINTS } from '../config/api';
+import { apiClient } from '@/lib/apiClient';
+import { ENDPOINTS } from '@/config/api';
 import type {
     Album,
     Track,
@@ -39,14 +39,14 @@ export const artistService = {
      * Create a new album
      */
     async createAlbum(data: CreateAlbumRequest): Promise<AlbumResponse> {
-        return apiClient.post<AlbumResponse>(ENDPOINTS.artist.albums, data);
+        return apiClient.post<AlbumResponse>(ENDPOINTS.artist.albums, data as unknown as Record<string, unknown>);
     },
 
     /**
      * Update an existing album
      */
     async updateAlbum(albumId: number, data: UpdateAlbumRequest): Promise<AlbumResponse> {
-        return apiClient.put<AlbumResponse>(ENDPOINTS.artist.albumById(albumId), data);
+        return apiClient.put<AlbumResponse>(ENDPOINTS.artist.albumById(albumId), data as unknown as Record<string, unknown>);
     },
 
     /**
@@ -66,7 +66,7 @@ export const artistService = {
         if (trackOrder) {
             data.trackOrder = trackOrder;
         }
-        return apiClient.post<TracksResponse>(ENDPOINTS.artist.albumTracks(albumId), data);
+        return apiClient.post<TracksResponse>(ENDPOINTS.artist.albumTracks(albumId), data as unknown as Record<string, unknown>);
     },
 
     /**

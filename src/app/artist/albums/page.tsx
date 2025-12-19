@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Shuffle, Plus, Trash2, ChevronRight, ChevronDown, Loader2, Music } from 'lucide-react';
-import '../../../styles/my-albums-page.css';
-import { artistService } from '../../../services/artistService';
-import type { Album, Track } from '../../../types/artist';
+import '@/styles/my-albums-page.css';
+import { artistService } from '@/services/artistService';
+import type { Album, Track } from '@/types/artist';
 import CreateAlbumModal from '../components/CreateAlbumModal';
 import AddTracksModal from '../components/AddTracksModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
@@ -197,7 +197,6 @@ const MyAlbumsPage = () => {
                     albums.map((album) => {
                         const isExpanded = expandedAlbumId === album.id;
                         const trackCount = album.albumTracks?.length || 0;
-                        const trackIds = album.albumTracks?.map(at => at.trackId) || [];
 
                         return (
                             <div key={album.id} className="album-section">

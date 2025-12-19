@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { Playlist, Heart, Album, Artist, Music, Performance, UserCircle } from '../lib/icons';
-import '../styles/sidebar.css';
+import { Playlist, Heart, Album, Artist, Music, Performance, UserCircle } from '@/lib/icons';
+import '@/styles/sidebar.css';
 
 const Sidebar = () => {
     // Get user role from localStorage (case-insensitive check)
@@ -50,7 +50,7 @@ const Sidebar = () => {
                             <span>My Songs</span>
                         </NavLink>
                         <NavLink to="/home/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                            <User />
+                            <UserCircle />
                             <span>Artist Profile</span>
                         </NavLink>
                     </>

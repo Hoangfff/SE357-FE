@@ -28,7 +28,7 @@ import AlbumsPage from './app/albums/page'
 import ArtistsPage from './app/artists/page'
 
 // Import artist pages
-import ArtistProfilePage from './app/profile/page'
+//import ArtistProfilePage from './app/profile/page'
 import MySongsPage from './app/my-songs/page'
 import UploadSongPage from './app/my-songs/upload/page'
 
@@ -39,6 +39,9 @@ import SearchPage from './app/search/page'
 import MyAlbumsPage from './app/artist/albums/page'
 import MyMusicPage from './app/artist/music/page'
 import ArtistProfilePage from './app/artist/profile/page'
+
+// Auth protection
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Create router with layout-based structure
 const router = createBrowserRouter([
@@ -70,7 +73,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/home',
-    element: <Layout />,
+    element: <ProtectedRoute><Layout /></ProtectedRoute>,
     children: [
       {
         index: true,
@@ -142,7 +145,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: <ProtectedRoute><AdminLayout /></ProtectedRoute>,
     children: [
       {
         index: true,

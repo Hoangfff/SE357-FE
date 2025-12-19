@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, User, Calendar, FileText, AlertCircle, Music, MessageSquare } from 'lucide-react';
-import type { Report } from '../../../types/admin';
+import type { Report } from '@/types/admin';
 
 interface ReportDetailsModalProps {
     isOpen: boolean;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, List, Grid, Search, Clock, HeartFilled } from '../../lib/icons';
-import '../../styles/liked-songs-page.css';
+import { Plus, List, Grid, Search, Clock, HeartFilled } from '@/lib/icons';
+import '@/styles/liked-songs-page.css';
 
 interface Track {
     id: number;

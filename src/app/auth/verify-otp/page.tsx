@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../../../services/authService';
-import '../../../styles/auth-form.css';
-import '../../../styles/forgot-password.css';
+import { authService } from '@/services/authService';
+import '@/styles/auth-form.css';
+import '@/styles/forgot-password.css';
 
 const VerifyOtpPage = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart, HeartFilled, Queue, Devices, MoreHorizontal } from '../lib/icons';
-import '../styles/music-player.css';
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart, HeartFilled, Queue, Devices, MoreHorizontal } from '@/lib/icons';
+import '@/styles/music-player.css';
 
 interface Track {
     id: string;

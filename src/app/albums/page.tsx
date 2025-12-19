@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Play, Plus } from '../../lib/icons';
-import '../../styles/albums-page.css';
+import { Play, Plus } from '@/lib/icons';
+import '@/styles/albums-page.css';
 
 // Sample album data
 const albumsData = [

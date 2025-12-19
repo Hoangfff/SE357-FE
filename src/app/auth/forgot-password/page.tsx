@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../../services/authService';
-import '../../../styles/auth-form.css';
-import '../../../styles/forgot-password.css';
+import { authService } from '@/services/authService';
+import '@/styles/auth-form.css';
+import '@/styles/forgot-password.css';
 
 type Step = 'email' | 'otp' | 'new-password';
 

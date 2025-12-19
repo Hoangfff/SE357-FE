@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Play } from '../../lib/icons';
-import '../../styles/search-page.css';
+import { Play } from '@/lib/icons';
+import '@/styles/search-page.css';
 
 interface SearchResult {
     id: string;

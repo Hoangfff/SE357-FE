@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Play, Music } from '../../lib/icons';
-import '../../styles/my-songs-page.css';
+import { Plus, Play, Music } from '@/lib/icons';
+import '@/styles/my-songs-page.css';
 
 // Mock data for artist's songs
 const mockSongs = [

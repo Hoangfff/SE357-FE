@@ -1,9 +1,23 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import { Bell, Moon, Info, User } from 'lucide-react'; // Top bar icons
 
 const AdminLayout = () => {
+    const navigate = useNavigate();
+
+    // Listen for unauthorized events (token expired during session)
+    useEffect(() => {
+        const handleUnauthorized = () => {
+            navigate('/auth/login', { replace: true });
+        };
+
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+        return () => {
+            window.removeEventListener('auth:unauthorized', handleUnauthorized);
+        };
+    }, [navigate]);
+
     return (
         <div className="admin-layout" style={{
             display: 'flex',

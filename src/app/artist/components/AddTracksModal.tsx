@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Music, Check, Loader2 } from 'lucide-react';
-import type { Track } from '../../../types/artist';
+import type { Track } from '@/types/artist';
 
 interface AddTracksModalProps {
     isOpen: boolean;
