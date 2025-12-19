@@ -27,6 +27,14 @@ import LikedSongsPage from './app/liked-songs/page'
 import AlbumsPage from './app/albums/page'
 import ArtistsPage from './app/artists/page'
 
+// Import artist pages
+import ArtistProfilePage from './app/profile/page'
+import MySongsPage from './app/my-songs/page'
+import UploadSongPage from './app/my-songs/upload/page'
+
+// Import search page
+import SearchPage from './app/search/page'
+
 // Create router with layout-based structure
 const router = createBrowserRouter([
   {
@@ -79,9 +87,22 @@ const router = createBrowserRouter([
         path: 'artists',
         element: <ArtistsPage />,
       },
+      // Artist-specific routes
+      {
+        path: 'profile',
+        element: <ArtistProfilePage />,
+      },
+      {
+        path: 'my-songs',
+        element: <MySongsPage />,
+      },
+      {
+        path: 'my-songs/upload',
+        element: <UploadSongPage />,
+      },
       {
         path: 'search',
-        element: <div style={{ padding: '2rem' }}><h1>Search Page</h1><p>Coming soon...</p></div>,
+        element: <SearchPage />,
       },
       {
         path: 'library',

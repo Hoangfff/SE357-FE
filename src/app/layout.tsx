@@ -6,14 +6,15 @@ import '../styles/spotify-theme.css';
 import '../styles/app-layout.css';
 
 const Layout = () => {
-    // Default track for the player
+    // Default track for the player (demo song)
     const defaultTrack = {
         id: '1',
-        title: 'Get Lucky',
-        artist: 'Daft Punk',
-        album: 'Random Access Memories',
-        duration: 275,
-        coverUrl: 'https://i.scdn.co/image/ab67616d0000b273a7c37f72a5d1040c05e30916'
+        title: 'Acoustic Breeze',
+        artist: 'Benjamin Tissot',
+        album: 'Bensound Collection',
+        duration: 145,
+        coverUrl: 'https://i.scdn.co/image/ab67616d0000b273a7c37f72a5d1040c05e30916',
+        audioUrl: 'https://www.bensound.com/bensound-music/bensound-acousticbreeze.mp3'
     };
 
     return (

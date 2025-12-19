@@ -1,8 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Playlist, Heart, Album, Artist, Home, Search } from '../lib/icons';
+import { Playlist, Heart, Album, Artist, Music, User } from '../lib/icons';
 import '../styles/sidebar.css';
 
 const Sidebar = () => {
+    // Check user role from decoded JWT token stored in localStorage
+    const userRole = localStorage.getItem('userRole');
+    const isArtist = userRole === 'ARTIST';
+
     return (
         <aside className="spotify-sidebar">
             <div className="sidebar-logo">
@@ -36,9 +40,25 @@ const Sidebar = () => {
                     <Artist />
                     <span>Artists</span>
                 </NavLink>
+
+                {/* Artist-only links */}
+                {isArtist && (
+                    <>
+                        <div className="sidebar-divider" />
+                        <NavLink to="/home/my-songs" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <Music />
+                            <span>My Songs</span>
+                        </NavLink>
+                        <NavLink to="/home/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                            <User />
+                            <span>Artist Profile</span>
+                        </NavLink>
+                    </>
+                )}
             </nav>
         </aside>
     );
 };
 
 export default Sidebar;
+

@@ -1,8 +1,25 @@
-import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Search, Bell, Users, Settings } from '../lib/icons';
 import '../styles/header.css';
 
 const Header = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/home/search?q=${encodeURIComponent(searchQuery)}`);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            navigate(`/home/search?q=${encodeURIComponent(searchQuery)}`);
+        }
+    };
+
     return (
         <header className="spotify-header">
             <div className="header-left">
@@ -17,14 +34,17 @@ const Header = () => {
                     </NavLink>
                 </div>
 
-                <div className="search-container">
+                <form onSubmit={handleSearch} className="search-container">
                     <Search />
                     <input
                         type="text"
                         placeholder="Search"
                         className="search-input"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
-                </div>
+                </form>
             </div>
 
             <div className="header-right">
