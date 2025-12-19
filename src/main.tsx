@@ -27,6 +27,11 @@ import LikedSongsPage from './app/liked-songs/page'
 import AlbumsPage from './app/albums/page'
 import ArtistsPage from './app/artists/page'
 
+// Artist pages
+import MyAlbumsPage from './app/artist/albums/page'
+import MyMusicPage from './app/artist/music/page'
+import ArtistProfilePage from './app/artist/profile/page'
+
 // Create router with layout-based structure
 const router = createBrowserRouter([
   {
@@ -90,6 +95,23 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <div style={{ padding: '2rem' }}><h1>Settings</h1><p>Coming soon...</p></div>,
+      },
+      // Artist routes
+      {
+        path: 'artist/albums',
+        element: <MyAlbumsPage />,
+      },
+      {
+        path: 'artist/music',
+        element: <MyMusicPage />,
+      },
+      {
+        path: 'artist/profile',
+        element: <ArtistProfilePage />,
+      },
+      {
+        path: 'artist/performance',
+        element: <div style={{ padding: '2rem' }}><h1>My Performance</h1><p>Coming soon...</p></div>,
       },
       {
         path: '*',

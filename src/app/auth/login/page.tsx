@@ -36,8 +36,8 @@ const LoginPage = () => {
         try {
             const response = await authService.login(email, password);
 
-            // Store the token
-            authService.storeToken(response.accessToken);
+            // Store both access token and refresh token
+            authService.storeTokens(response.accessToken, response.refreshToken);
 
             // Handle remember me
             if (rememberMe) {

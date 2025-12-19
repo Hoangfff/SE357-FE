@@ -1,0 +1,223 @@
+/* My Albums Page - Artist Dashboard */
+.my-albums-page {
+    max-width: 1800px;
+    padding: 24px;
+}
+
+/* Page Header */
+.my-albums-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.my-albums-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--spotify-text, #fff);
+    margin: 0;
+}
+
+.create-album-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--spotify-green, #1DB954);
+    color: #000;
+    border: none;
+    border-radius: 24px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-album-btn:hover {
+    background: #1ed760;
+    transform: scale(1.02);
+}
+
+.create-album-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Albums List */
+.my-albums-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Album Row */
+.album-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: transparent;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+}
+
+.album-row:hover {
+    background: var(--spotify-gray-dark, #282828);
+}
+
+/* Album Cover */
+.album-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--spotify-gray, #404040), var(--spotify-gray-dark, #282828));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Album Info */
+.album-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.album-row-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--spotify-text, #fff);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.album-meta {
+    font-size: 0.875rem;
+    color: var(--spotify-text-subdued, #b3b3b3);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.album-meta span:not(:last-child)::after {
+    content: '•';
+    margin-left: 8px;
+}
+
+/* Album Actions */
+.album-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.album-row:hover .album-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--spotify-text-subdued, #b3b3b3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    color: var(--spotify-text, #fff);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.action-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Play Button (Primary) */
+.action-btn.play-btn {
+    background: var(--spotify-green, #1DB954);
+    color: #000;
+    width: 48px;
+    height: 48px;
+}
+
+.action-btn.play-btn:hover {
+    background: #1ed760;
+    transform: scale(1.04);
+}
+
+.action-btn.play-btn svg {
+    width: 24px;
+    height: 24px;
+    margin-left: 2px;
+}
+
+/* Shuffle Button */
+.action-btn.shuffle-btn {
+    background: transparent;
+    color: var(--spotify-text-subdued, #b3b3b3);
+}
+
+.action-btn.shuffle-btn:hover {
+    color: var(--spotify-green, #1DB954);
+}
+
+/* Album Expand Arrow */
+.album-expand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--spotify-text-subdued, #b3b3b3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.album-row:hover .album-expand {
+    opacity: 1;
+}
+
+.album-expand svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .my-albums-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .album-row {
+        flex-wrap: wrap;
+    }
+
+    .album-actions {
+        opacity: 1;
+        flex: 1 0 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+        padding-left: 96px;
+    }
+}

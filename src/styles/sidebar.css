@@ -79,4 +79,22 @@
         justify-content: center;
         padding: 12px;
     }
+
+    .sidebar-section-label {
+        display: none;
+    }
+}
+
+/* Sidebar Section Divider */
+.sidebar-divider {
+    margin: 16px 0 8px 0;
+    padding: 0 16px;
+}
+
+.sidebar-section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--spotify-text-subdued, #b3b3b3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
