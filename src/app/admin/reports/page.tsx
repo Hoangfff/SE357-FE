@@ -6,8 +6,8 @@ import AdminFooter from '../components/AdminFooter';
 import ReportDetailsModal from '../components/ReportDetailsModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import ResolveReportModal from '../components/ResolveReportModal';
-import { adminService } from '../../../services/adminService';
-import type { Report, ReportStatus, ReportType } from '../../../types/admin';
+import { adminService } from '@/services/adminService';
+import type { Report, ReportStatus, ReportType } from '@/types/admin';
 
 const ReportsPage = () => {
     const [searchQuery, setSearchQuery] = useState('');

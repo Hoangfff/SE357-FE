@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -10,7 +9,7 @@ import {
     HelpCircle,
     LogOut
 } from 'lucide-react';
-import '../../../styles/admin-theme.css'; // Ensure variables are available
+import '@/styles/admin-theme.css'; // Ensure variables are available
 
 const AdminSidebar = () => {
     const navigate = useNavigate();
@@ -139,9 +138,7 @@ const AdminSidebar = () => {
     );
 };
 
-// Helper for inline styles if needed, but using style tag for pseudo-elements
-const navItemStyle = (props?: { isActive?: boolean }) => ({
-    // calculated in className/style tag
-});
+// Inline styles for navigation items
+const navItemStyle = {};
 
 export default AdminSidebar;

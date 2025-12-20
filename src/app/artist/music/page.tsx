@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music } from 'lucide-react';
-import '../../../styles/my-music-page.css';
-import { artistService } from '../../../services/artistService';
-import type { Track } from '../../../types/artist';
+import '@/styles/my-music-page.css';
+import { artistService } from '@/services/artistService';
+import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
 type ViewMode = 'list' | 'grid';

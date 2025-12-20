@@ -1,4 +1,4 @@
-# 🎵 MusicHub - Modern Music Streaming Website
+# 🎵 MusicStream - Modern Music Streaming Website
 
 A beautiful, modern music streaming website built with React, TypeScript, and Vite. Features a premium UI with glassmorphism design, smooth animations, and layout-based routing.
 

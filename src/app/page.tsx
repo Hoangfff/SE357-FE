@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight, MoreHorizontal, Play } from '../lib/icons';
-import '../styles/home-page.css';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Play } from '@/lib/icons';
+import '@/styles/home-page.css';
 
 // Sample data for the sections
 const madeForYouItems = [

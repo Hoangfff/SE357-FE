@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart2, CircleDollarSign, Users, Music } from 'lucide-react';
 import StatCard from './components/StatCard';
 import { TotalUsersChart, WeeklyUploadsChart } from './components/Charts';

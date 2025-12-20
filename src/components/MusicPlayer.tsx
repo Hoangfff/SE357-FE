@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart, HeartFilled, Queue, Devices, MoreHorizontal } from '../lib/icons';
-import '../styles/music-player.css';
+import { useState, useRef, useEffect } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart, HeartFilled, Queue, Devices, MoreHorizontal } from '@/lib/icons';
+import '@/styles/music-player.css';
 
 interface Track {
     id: string;
@@ -9,6 +9,7 @@ interface Track {
     album?: string;
     duration: number;
     coverUrl?: string;
+    audioUrl?: string;
 }
 
 interface MusicPlayerProps {
@@ -16,12 +17,77 @@ interface MusicPlayerProps {
 }
 
 const MusicPlayer = ({ track }: MusicPlayerProps) => {
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(143); // 2:23
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(track.duration);
     const [volume, setVolume] = useState(0.7);
     const [isLiked, setIsLiked] = useState(true);
     const [isShuffleOn, setIsShuffleOn] = useState(false);
     const [repeatMode, setRepeatMode] = useState(0); // 0: off, 1: all, 2: one
+
+    // Update audio element when track changes
+    useEffect(() => {
+        if (audioRef.current && track.audioUrl) {
+            audioRef.current.src = track.audioUrl;
+            audioRef.current.load();
+            if (isPlaying) {
+                audioRef.current.play();
+            }
+        }
+    }, [track.audioUrl]);
+
+    // Update volume
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+        }
+    }, [volume]);
+
+    // Handle play/pause
+    const togglePlay = () => {
+        if (!audioRef.current) return;
+
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    // Handle time update
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+        }
+    };
+
+    // Handle loaded metadata
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            setDuration(audioRef.current.duration);
+        }
+    };
+
+    // Handle song end
+    const handleEnded = () => {
+        if (repeatMode === 2) {
+            // Repeat one
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+            }
+        } else if (repeatMode === 1) {
+            // Repeat all - for demo, just replay the same song
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+            }
+        } else {
+            setIsPlaying(false);
+        }
+    };
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -30,17 +96,29 @@ const MusicPlayer = ({ track }: MusicPlayerProps) => {
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCurrentTime(parseFloat(e.target.value));
+        const newTime = parseFloat(e.target.value);
+        setCurrentTime(newTime);
+        if (audioRef.current) {
+            audioRef.current.currentTime = newTime;
+        }
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setVolume(parseFloat(e.target.value));
     };
 
-    const progressPercent = (currentTime / track.duration) * 100;
+    const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
         <div className="spotify-player">
+            {/* Hidden Audio Element */}
+            <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={handleEnded}
+            />
+
             {/* Left: Track Info */}
             <div className="player-left">
                 <div className="player-cover">
@@ -76,7 +154,7 @@ const MusicPlayer = ({ track }: MusicPlayerProps) => {
                     </button>
                     <button
                         className="control-btn play-pause"
-                        onClick={() => setIsPlaying(!isPlaying)}
+                        onClick={togglePlay}
                     >
                         {isPlaying ? <Pause /> : <Play />}
                     </button>
@@ -97,14 +175,14 @@ const MusicPlayer = ({ track }: MusicPlayerProps) => {
                         <input
                             type="range"
                             min="0"
-                            max={track.duration}
+                            max={duration}
                             value={currentTime}
                             onChange={handleSeek}
                             className="progress-bar"
                             style={{ '--progress': `${progressPercent}%` } as React.CSSProperties}
                         />
                     </div>
-                    <span className="time total">{formatTime(track.duration)}</span>
+                    <span className="time total">{formatTime(duration)}</span>
                 </div>
             </div>
 

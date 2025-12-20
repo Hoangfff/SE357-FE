@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, User, Mail, Calendar, Music, Link } from 'lucide-react';
-import type { ArtistApplication } from '../../../types/admin';
+import type { ArtistApplication } from '@/types/admin';
 
 interface ApplicationDetailsModalProps {
     isOpen: boolean;

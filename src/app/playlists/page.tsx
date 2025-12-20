@@ -1,5 +1,5 @@
-import { Plus, Play } from '../../lib/icons';
-import '../../styles/playlists-page.css';
+import { Plus, Play } from '@/lib/icons';
+import '@/styles/playlists-page.css';
 
 const playlistsData = [
     { id: 1, title: 'Chill Vibes', songCount: 48, image: 'https://i.scdn.co/image/ab67616d0000b273e8e28219724c2423afa4d320' },

@@ -6,8 +6,8 @@ import ActivitiesTable from '../components/ActivitiesTable';
 import AdminFooter from '../components/AdminFooter';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AssignRoleModal from '../components/AssignRoleModal';
-import { adminService } from '../../../services/adminService';
-import type { AdminUser } from '../../../types/admin';
+import { adminService } from '@/services/adminService';
+import type { AdminUser } from '@/types/admin';
 
 interface Activity {
     id: number;

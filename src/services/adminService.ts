@@ -3,8 +3,8 @@
  * Handles all admin-related API calls: artist applications, reports, user management
  */
 
-import { ENDPOINTS } from '../config/api';
-import { apiClient } from '../lib/apiClient';
+import { ENDPOINTS } from '@/config/api';
+import { apiClient } from '@/lib/apiClient';
 import type {
     ArtistApplication,
     ArtistApplicationsResponse,
@@ -133,7 +133,7 @@ export const adminService = {
     async deleteAccount(userId: number): Promise<{ message: string }> {
         return apiClient.delete<{ message: string }>(
             ENDPOINTS.admin.deleteAccount(String(userId)),
-            { confirm: true }
+            { data: { confirm: true } }
         );
     },
 

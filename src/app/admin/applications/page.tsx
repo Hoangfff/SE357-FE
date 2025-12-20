@@ -6,8 +6,8 @@ import AdminFooter from '../components/AdminFooter';
 import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import RejectReasonModal from '../components/RejectReasonModal';
-import { adminService } from '../../../services/adminService';
-import type { ArtistApplication, ApplicationStatus } from '../../../types/admin';
+import { adminService } from '@/services/adminService';
+import type { ArtistApplication, ApplicationStatus } from '@/types/admin';
 
 const ApplicationsPage = () => {
     const [searchQuery, setSearchQuery] = useState('');

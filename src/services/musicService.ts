@@ -1,6 +1,7 @@
 // Music service - handles API calls for music data
-import { API_BASE_URL, ENDPOINTS } from '../config/api';
-import type { Track, Playlist } from '../types';
+// TODO: Implement actual API calls using these imports
+// import { API_BASE_URL, ENDPOINTS } from '@/config/api';
+import type { Track, Playlist } from '@/types';
 
 export const musicService = {
     /**

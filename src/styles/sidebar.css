@@ -53,6 +53,16 @@
     color: var(--spotify-text, #fff);
 }
 
+.sidebar-link.active svg {
+    color: var(--spotify-green, #1DB954);
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 12px 0;
+}
+
 .sidebar-link.active {
     background: var(--spotify-gray-dark, #282828);
     color: var(--spotify-text, #fff);

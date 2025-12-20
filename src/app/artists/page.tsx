@@ -1,5 +1,5 @@
-import { Play } from '../../lib/icons';
-import '../../styles/artists-page.css';
+import { Play } from '@/lib/icons';
+import '@/styles/artists-page.css';
 
 const artistsData = [
     { id: 1, name: 'Daft Punk', image: 'https://i.scdn.co/image/ab6761610000e5eba7bfd7835b5c1eee0c95573b' },

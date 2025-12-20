@@ -1,5 +1,6 @@
 // Authentication service
-import { API_BASE_URL, ENDPOINTS } from '../config/api';
+import { ENDPOINTS } from '@/config/api';
+import { apiClient, tokenManager } from '@/lib/apiClient';
 
 // Auth API response types
 export interface AuthResponse {
@@ -17,50 +18,15 @@ export interface ApiError {
     statusCode?: number;
 }
 
-// Helper function to make API requests
-const apiRequest = async <T>(url: string, options: RequestInit): Promise<T> => {
-    try {
-        console.log('Making request to:', url, options); // Debug log
-
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': '*/*',
-                ...options.headers,
-            },
-        });
-
-        console.log('Response status:', response.status); // Debug log
-
-        const data = await response.json();
-        console.log('Response data:', data); // Debug log
-
-        if (!response.ok) {
-            throw new Error(data.message || `Error: ${response.status}`);
-        }
-
-        return data as T;
-    } catch (error) {
-        console.error('API Error:', error); // Debug log
-        if (error instanceof Error) {
-            throw error;
-        }
-        throw new Error('Đã có lỗi xảy ra');
-    }
-};
-
 export const authService = {
     /**
      * Register a new user
      */
     async register(email: string, password: string, name: string): Promise<AuthResponse> {
-        return apiRequest<AuthResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.register}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email, password, name }),
-            }
+        return apiClient.post<AuthResponse>(
+            ENDPOINTS.auth.register,
+            { email, password, name },
+            { skipAuth: true }
         );
     },
 
@@ -68,12 +34,10 @@ export const authService = {
      * Verify OTP for account activation
      */
     async verifyOtp(email: string, otp: string): Promise<AuthResponse> {
-        return apiRequest<AuthResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.verifyOtp}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email, otp }),
-            }
+        return apiClient.post<AuthResponse>(
+            ENDPOINTS.auth.verifyOtp,
+            { email, otp },
+            { skipAuth: true }
         );
     },
 
@@ -81,12 +45,10 @@ export const authService = {
      * Login user
      */
     async login(email: string, password: string): Promise<LoginResponse> {
-        return apiRequest<LoginResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.login}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email, password }),
-            }
+        return apiClient.post<LoginResponse>(
+            ENDPOINTS.auth.login,
+            { email, password },
+            { skipAuth: true }
         );
     },
 
@@ -94,12 +56,10 @@ export const authService = {
      * Request password reset OTP
      */
     async forgotPassword(email: string): Promise<AuthResponse> {
-        return apiRequest<AuthResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.forgotPassword}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email }),
-            }
+        return apiClient.post<AuthResponse>(
+            ENDPOINTS.auth.forgotPassword,
+            { email },
+            { skipAuth: true }
         );
     },
 
@@ -107,12 +67,10 @@ export const authService = {
      * Verify password reset OTP
      */
     async verifyResetOtp(email: string, otp: string): Promise<AuthResponse> {
-        return apiRequest<AuthResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.verifyResetOtp}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email, otp }),
-            }
+        return apiClient.post<AuthResponse>(
+            ENDPOINTS.auth.verifyResetOtp,
+            { email, otp },
+            { skipAuth: true }
         );
     },
 
@@ -120,12 +78,10 @@ export const authService = {
      * Reset password with new password
      */
     async resetPassword(email: string, newPassword: string): Promise<AuthResponse> {
-        return apiRequest<AuthResponse>(
-            `${API_BASE_URL}${ENDPOINTS.auth.resetPassword}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({ email, newPassword }),
-            }
+        return apiClient.post<AuthResponse>(
+            ENDPOINTS.auth.resetPassword,
+            { email, newPassword },
+            { skipAuth: true }
         );
     },
 
@@ -133,17 +89,23 @@ export const authService = {
      * Logout user
      */
     async logout(): Promise<void> {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('userEmail');
+        try {
+            // Call logout API endpoint
+            await apiClient.post(ENDPOINTS.auth.logout);
+        } catch (error) {
+            // Continue with logout even if API call fails
+            console.error('Logout API error:', error);
+        } finally {
+            // Always clear tokens locally
+            tokenManager.clearAll();
+        }
     },
 
     /**
      * Store auth token
      */
     storeToken(token: string): void {
-        localStorage.setItem('accessToken', token);
+        tokenManager.setToken(token);
         localStorage.setItem('isAuthenticated', 'true');
     },
 
@@ -151,15 +113,15 @@ export const authService = {
      * Store refresh token
      */
     storeRefreshToken(token: string): void {
-        localStorage.setItem('refreshToken', token);
+        tokenManager.setRefreshToken(token);
     },
 
     /**
      * Store both tokens at once
      */
     storeTokens(accessToken: string, refreshToken: string): void {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+        tokenManager.setToken(accessToken);
+        tokenManager.setRefreshToken(refreshToken);
         localStorage.setItem('isAuthenticated', 'true');
     },
 
@@ -167,14 +129,14 @@ export const authService = {
      * Get stored token
      */
     getToken(): string | null {
-        return localStorage.getItem('accessToken');
+        return tokenManager.getToken();
     },
 
     /**
      * Check if user is authenticated
      */
     isAuthenticated(): boolean {
-        return !!localStorage.getItem('accessToken');
+        return !!tokenManager.getToken();
     },
 
     /**

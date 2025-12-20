@@ -35,3 +35,44 @@ export interface PlayerState {
     currentTime: number;
     queue: Track[];
 }
+
+// Artist-specific types
+export interface ArtistProfile {
+    id: string;
+    name: string;
+    bio: string;
+    contactEmail: string;
+    website?: string;
+    followerCount: number;
+    monthlyListeners: number;
+    coverImage?: string;
+    avatarUrl?: string;
+    verified: boolean;
+    createdAt: Date;
+}
+
+export interface Song {
+    id: string;
+    title: string;
+    artistId: string;
+    artistName: string;
+    albumId?: string;
+    albumName?: string;
+    duration: number;
+    coverUrl?: string;
+    audioUrl?: string;
+    plays: number;
+    uploadedAt: Date;
+}
+
+export interface ArtistAlbum {
+    id: string;
+    title: string;
+    description?: string;
+    artistId: string;
+    artistName: string;
+    coverUrl?: string;
+    songs: Song[];
+    releaseDate: Date;
+    createdAt: Date;
+}
