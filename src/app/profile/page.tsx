@@ -205,9 +205,7 @@ const ArtistProfilePage = () => {
                         {photoUrl ? (
                             <img src={photoUrl} alt="Profile" className="avatar-image" />
                         ) : (
-                            <div className="avatar-placeholder">
-                                <span>?</span>
-                            </div>
+                            <img src="/placeholders/user-avatar.svg" alt="No avatar" className="avatar-placeholder" />
                         )}
                         <div className="avatar-overlay">
                             <Camera size={20} />

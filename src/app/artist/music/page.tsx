@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music, X, Upload as UploadIcon, Image as ImageIcon } from 'lucide-react';
 import '@/styles/my-music-page.css';
 import { artistService } from '@/services/artistService';
+import { ENDPOINTS } from '@/config/api';
+import { apiClient } from '@/lib/apiClient';
 import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
@@ -31,6 +33,20 @@ const MyMusicPage = () => {
         title: string;
     }>({ isOpen: false, trackId: null, title: '' });
 
+    // Upload modal state
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadFormData, setUploadFormData] = useState({
+        title: '',
+        genre: '',
+        albumId: '',
+    });
+    const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [coverImage, setCoverImage] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [albums, setAlbums] = useState<Array<{ id: number; title: string }>>([]);
+    const audioInputRef = useRef<HTMLInputElement>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+
     // Fetch tracks
     const fetchTracks = useCallback(async () => {
         setIsLoading(true);
@@ -48,7 +64,18 @@ const MyMusicPage = () => {
 
     useEffect(() => {
         fetchTracks();
+        fetchAlbums();
     }, [fetchTracks]);
+
+    // Fetch albums for dropdown
+    const fetchAlbums = async () => {
+        try {
+            const data = await artistService.getAlbums();
+            setAlbums(data.map(album => ({ id: album.id, title: album.title })));
+        } catch (err) {
+            console.error('Failed to fetch albums:', err);
+        }
+    };
 
     // Delete track handler
     const handleDeleteTrack = async () => {
@@ -69,6 +96,72 @@ const MyMusicPage = () => {
     const handlePlayTrack = (track: Track) => {
         artistService.playAlbum([track]);
     };
+
+    // Upload form handlers
+    const handleUploadInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setUploadFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAudioFile(file);
+        }
+    };
+
+    const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCoverImage(file);
+        }
+    };
+
+    const resetUploadForm = () => {
+        setUploadFormData({ title: '', genre: '', albumId: '' });
+        setAudioFile(null);
+        setCoverImage(null);
+        if (audioInputRef.current) audioInputRef.current.value = '';
+        if (imageInputRef.current) imageInputRef.current.value = '';
+    };
+
+    const handleUploadSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!audioFile || !uploadFormData.title.trim()) return;
+
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('audioFile', audioFile);
+            formData.append('title', uploadFormData.title);
+            if (uploadFormData.genre) {
+                formData.append('genre', uploadFormData.genre);
+            }
+            if (uploadFormData.albumId) {
+                formData.append('albumId', uploadFormData.albumId);
+            }
+            if (coverImage) {
+                formData.append('coverImage', coverImage);
+            }
+
+            // Upload via artist music endpoint
+            await apiClient.post(ENDPOINTS.artist.music, formData);
+
+            // Refresh tracks list
+            await fetchTracks();
+
+            // Close modal and reset form
+            setIsUploadModalOpen(false);
+            resetUploadForm();
+        } catch (err) {
+            console.error('Failed to upload track:', err);
+            alert('Failed to upload track. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const isUploadFormValid = uploadFormData.title.trim() !== '' && audioFile !== null;
 
     // Filter and sort tracks
     const filteredTracks = tracks
@@ -123,7 +216,11 @@ const MyMusicPage = () => {
         <div className="my-music-page">
             {/* Toolbar */}
             <div className="music-toolbar">
-                <button className="add-music-btn">
+                <button 
+                    className="add-music-btn"
+                    onClick={() => setIsUploadModalOpen(true)}
+                    title="Upload new track"
+                >
                     <span>+</span>
                 </button>
 
@@ -220,9 +317,7 @@ const MyMusicPage = () => {
                                         {track.albumTracks?.[0]?.albums?.coverUrl ? (
                                             <img src={track.albumTracks[0].albums.coverUrl} alt={track.title} />
                                         ) : (
-                                            <div className="cover-placeholder">
-                                                <Music size={16} />
-                                            </div>
+                                            <img src="/placeholders/music-track.svg" alt="No cover" className="cover-placeholder" />
                                         )}
                                     </div>
                                     <div className="track-info">
@@ -275,9 +370,7 @@ const MyMusicPage = () => {
                                     {track.albumTracks?.[0]?.albums?.coverUrl ? (
                                         <img src={track.albumTracks[0].albums.coverUrl} alt={track.title} />
                                     ) : (
-                                        <div className="cover-placeholder">
-                                            <Music size={32} />
-                                        </div>
+                                        <img src="/placeholders/music-track.svg" alt="No cover" className="cover-placeholder" />
                                     )}
                                     <button
                                         className="play-btn-overlay"
@@ -305,6 +398,145 @@ const MyMusicPage = () => {
                 message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
                 isLoading={isDeleting}
             />
+
+            {/* Upload Track Modal */}
+            {isUploadModalOpen && (
+                <div className="modal-overlay" onClick={() => !isUploading && setIsUploadModalOpen(false)}>
+                    <div className="modal-content upload-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Upload New Track</h2>
+                            <button
+                                className="modal-close-btn"
+                                onClick={() => setIsUploadModalOpen(false)}
+                                disabled={isUploading}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUploadSubmit} className="upload-form-modal">
+                            {/* Track Details */}
+                            <div className="form-section">
+                                <label htmlFor="title" className="form-label">Track Title *</label>
+                                <input
+                                    type="text"
+                                    id="title"
+                                    name="title"
+                                    value={uploadFormData.title}
+                                    onChange={handleUploadInputChange}
+                                    placeholder="Enter track title"
+                                    className="form-input"
+                                    required
+                                    disabled={isUploading}
+                                />
+                            </div>
+
+                            <div className="form-section">
+                                <label htmlFor="genre" className="form-label">Genre</label>
+                                <input
+                                    type="text"
+                                    id="genre"
+                                    name="genre"
+                                    value={uploadFormData.genre}
+                                    onChange={handleUploadInputChange}
+                                    placeholder="e.g., Pop, Rock, Jazz"
+                                    className="form-input"
+                                    disabled={isUploading}
+                                />
+                            </div>
+
+                            <div className="form-section">
+                                <label htmlFor="albumId" className="form-label">Album (Optional)</label>
+                                <select
+                                    id="albumId"
+                                    name="albumId"
+                                    value={uploadFormData.albumId}
+                                    onChange={handleUploadInputChange}
+                                    className="form-select"
+                                    disabled={isUploading}
+                                >
+                                    <option value="">Single (No Album)</option>
+                                    {albums.map(album => (
+                                        <option key={album.id} value={album.id}>{album.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Audio File Upload */}
+                            <div className="form-section">
+                                <label className="form-label">Audio File *</label>
+                                <input
+                                    type="file"
+                                    ref={audioInputRef}
+                                    onChange={handleAudioChange}
+                                    accept="audio/*"
+                                    style={{ display: 'none' }}
+                                    disabled={isUploading}
+                                />
+                                <div
+                                    className={`file-upload-box ${audioFile ? 'has-file' : ''}`}
+                                    onClick={() => !isUploading && audioInputRef.current?.click()}
+                                >
+                                    <UploadIcon size={24} />
+                                    <p className="file-upload-text">
+                                        {audioFile ? audioFile.name : 'Click to upload audio file'}
+                                    </p>
+                                    <p className="file-upload-hint">MP3, WAV, FLAC up to 50MB</p>
+                                </div>
+                            </div>
+
+                            {/* Cover Image Upload */}
+                            <div className="form-section">
+                                <label className="form-label">Cover Image (Optional)</label>
+                                <input
+                                    type="file"
+                                    ref={imageInputRef}
+                                    onChange={handleCoverChange}
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    disabled={isUploading}
+                                />
+                                <div
+                                    className={`file-upload-box ${coverImage ? 'has-file' : ''}`}
+                                    onClick={() => !isUploading && imageInputRef.current?.click()}
+                                >
+                                    <ImageIcon size={24} />
+                                    <p className="file-upload-text">
+                                        {coverImage ? coverImage.name : 'Click to upload cover image'}
+                                    </p>
+                                    <p className="file-upload-hint">JPG, PNG up to 5MB (Square recommended)</p>
+                                </div>
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => setIsUploadModalOpen(false)}
+                                    disabled={isUploading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn-primary"
+                                    disabled={!isUploadFormValid || isUploading}
+                                >
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 size={16} className="spinner" />
+                                            Uploading...
+                                        </>
+                                    ) : (
+                                        'Upload Track'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

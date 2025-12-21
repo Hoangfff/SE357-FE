@@ -90,7 +90,13 @@ const LikedSongsPage = () => {
                             <span className="col-num">{index + 1}</span>
                             <div className="col-title">
                                 <div className="song-image">
-                                    <img src={song.image} alt={song.title} />
+                                    <img 
+                                        src={song.image} 
+                                        alt={song.title}
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
+                                        }}
+                                    />
                                 </div>
                                 <div className="song-info">
                                     <p className="song-name">{song.title}</p>

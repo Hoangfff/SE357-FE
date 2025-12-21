@@ -203,13 +203,7 @@ const MyAlbumsPage = () => {
                                 <div className="album-row" onClick={() => toggleExpand(album.id)}>
                                     {/* Album Cover */}
                                     <div className="album-cover">
-                                        {album.coverUrl ? (
-                                            <img src={album.coverUrl} alt={album.title} />
-                                        ) : (
-                                            <div style={placeholderCoverStyle}>
-                                                <Music size={24} color="#888" />
-                                            </div>
-                                        )}
+                                        <img src={album.coverUrl || '/placeholders/music-track.svg'} alt={album.title} />
                                     </div>
 
                                     {/* Album Info */}

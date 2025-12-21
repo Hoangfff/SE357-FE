@@ -125,7 +125,7 @@ const MusicPlayer = ({ track }: MusicPlayerProps) => {
                     {track.coverUrl ? (
                         <img src={track.coverUrl} alt={track.title} />
                     ) : (
-                        <div className="cover-placeholder"></div>
+                        <img src="/placeholders/music-track.svg" alt="No cover" className="cover-placeholder" />
                     )}
                 </div>
                 <div className="player-track-info">

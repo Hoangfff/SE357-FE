@@ -1,6 +1,6 @@
 /**
  * API Client - Axios-based HTTP client for making API requests
- * Provides consistent error handling, auth token management, auto-refresh via interceptors
+ * Provides consistent error handling, auth token management via cookies, auto-refresh via interceptors
  */
 
 import axios, { AxiosError } from 'axios';
@@ -20,92 +20,117 @@ export interface ApiError {
     errors?: Record<string, string[]>;
 }
 
-// Token management - must match keys used by authService
-const TOKEN_KEY = 'accessToken';
-const REFRESH_TOKEN_KEY = 'refreshToken';
+// Token storage (in memory + localStorage for persistence)
+let accessToken: string | null = null;
+let refreshToken: string | null = null;
 
 export const tokenManager = {
-    getToken: (): string | null => localStorage.getItem(TOKEN_KEY),
-    setToken: (token: string): void => localStorage.setItem(TOKEN_KEY, token),
-    removeToken: (): void => localStorage.removeItem(TOKEN_KEY),
-
-    getRefreshToken: (): string | null => localStorage.getItem(REFRESH_TOKEN_KEY),
-    setRefreshToken: (token: string): void => localStorage.setItem(REFRESH_TOKEN_KEY, token),
-    removeRefreshToken: (): void => localStorage.removeItem(REFRESH_TOKEN_KEY),
-
+    getToken: (): string | null => {
+        if (!accessToken) {
+            accessToken = localStorage.getItem('accessToken');
+        }
+        return accessToken;
+    },
+    setToken: (token: string): void => {
+        accessToken = token;
+        localStorage.setItem('accessToken', token);
+    },
+    getRefreshToken: (): string | null => {
+        if (!refreshToken) {
+            refreshToken = localStorage.getItem('refreshToken');
+        }
+        return refreshToken;
+    },
+    setRefreshToken: (token: string): void => {
+        refreshToken = token;
+        localStorage.setItem('refreshToken', token);
+    },
     clearAll: (): void => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        localStorage.removeItem('isAuthenticated');
+        accessToken = null;
+        refreshToken = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userEmail');
-    }
+    },
+};
+
+// User info stored in memory (populated from login response)
+interface UserInfo {
+    id: string;
+    email: string;
+    role: string;
+}
+
+let currentUser: UserInfo | null = null;
+
+export const userSession = {
+    getUser: (): UserInfo | null => currentUser,
+    setUser: (user: UserInfo | null): void => {
+        currentUser = user;
+        if (user) {
+            localStorage.setItem('userRole', user.role);
+            localStorage.setItem('userEmail', user.email);
+        }
+    },
+    clearUser: (): void => {
+        currentUser = null;
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userEmail');
+    },
+    isAuthenticated: (): boolean => currentUser !== null || !!tokenManager.getToken(),
 };
 
 // Track if a refresh is in progress to prevent multiple simultaneous refreshes
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((success: boolean) => void)[] = [];
 
-// Create axios instance with base configuration
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Important: This sends cookies with every request
 });
 
 // Subscribe to token refresh
-function subscribeTokenRefresh(callback: (token: string) => void): void {
+function subscribeTokenRefresh(callback: (success: boolean) => void): void {
     refreshSubscribers.push(callback);
 }
 
 // Notify all subscribers when token is refreshed
-function onTokenRefreshed(token: string): void {
-    refreshSubscribers.forEach(callback => callback(token));
+function onTokenRefreshed(success: boolean): void {
+    refreshSubscribers.forEach(callback => callback(success));
     refreshSubscribers = [];
 }
 
-// Refresh the access token
-async function refreshAccessToken(): Promise<string | null> {
-    const refreshToken = tokenManager.getRefreshToken();
-    if (!refreshToken) {
-        console.log('[API Client] No refresh token available');
-        return null;
-    }
-
+export async function refreshAccessToken(): Promise<boolean> {
     try {
-        console.log('[API Client] Attempting to refresh access token...');
-        const response = await axios.post(`${API_BASE_URL}${ENDPOINTS.auth.refresh}`, {
-            refreshToken
-        });
+        console.log('[API Client] Attempting to refresh access token using refreshToken cookie...');
+        const response = await axios.get(
+            `${API_BASE_URL}${ENDPOINTS.auth.refresh}`,
+            { withCredentials: true }
+        );
 
-        const newAccessToken = response.data.accessToken;
-        if (newAccessToken) {
-            tokenManager.setToken(newAccessToken);
+        if (response.data.accessToken) {
             console.log('[API Client] Access token refreshed successfully');
-            return newAccessToken;
+            tokenManager.setToken(response.data.accessToken);
         }
 
-        return null;
+        return true;
     } catch (error) {
         console.error('[API Client] Refresh token error:', error);
-        return null;
+        return false;
     }
 }
 
-// Request interceptor - Add auth token to requests
+// Request interceptor - add Authorization header
 axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        // Skip auth header if skipAuth flag is set
-        if ((config as InternalAxiosRequestConfig & { skipAuth?: boolean }).skipAuth) {
-            return config;
-        }
-
         const token = tokenManager.getToken();
-        if (token) {
+        if (token && !config.headers.Authorization) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-
         return config;
     },
     (error) => {
@@ -126,12 +151,13 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.skipAuth) {
             if (isRefreshing) {
                 // Wait for token refresh to complete
-                return new Promise((resolve) => {
-                    subscribeTokenRefresh((token: string) => {
-                        if (originalRequest.headers) {
-                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                return new Promise((resolve, reject) => {
+                    subscribeTokenRefresh((success: boolean) => {
+                        if (success) {
+                            resolve(axiosInstance(originalRequest));
+                        } else {
+                            reject(error);
                         }
-                        resolve(axiosInstance(originalRequest));
                     });
                 });
             }
@@ -140,27 +166,26 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const newToken = await refreshAccessToken();
+                const success = await refreshAccessToken();
 
-                if (newToken) {
+                if (success) {
                     isRefreshing = false;
-                    onTokenRefreshed(newToken);
-
-                    if (originalRequest.headers) {
-                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                    }
+                    onTokenRefreshed(true);
                     return axiosInstance(originalRequest);
                 }
             } catch (refreshError) {
                 isRefreshing = false;
-                tokenManager.clearAll();
+                onTokenRefreshed(false);
+                userSession.clearUser();
                 window.dispatchEvent(new CustomEvent('auth:unauthorized'));
                 return Promise.reject(refreshError);
             }
 
             // Refresh failed
             isRefreshing = false;
+            onTokenRefreshed(false);
             tokenManager.clearAll();
+            userSession.clearUser();
             window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         }
 
@@ -180,7 +205,7 @@ export const apiClient = {
     // Direct access to axios instance for advanced usage
     instance: axiosInstance,
 
-    // Simplified HTTP methods
+    // Simplified HTTP methods - all include withCredentials automatically
     get: <T>(endpoint: string, config?: { params?: Record<string, unknown>; skipAuth?: boolean }) =>
         axiosInstance.get<T, T>(endpoint, config as never),
 

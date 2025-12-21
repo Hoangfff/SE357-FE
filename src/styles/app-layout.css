@@ -9,6 +9,7 @@
 .app-main {
     flex: 1;
     margin-left: var(--sidebar-width, 200px);
+    width: calc(100% - var(--sidebar-width, 200px));
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -25,6 +26,7 @@
 @media (max-width: 768px) {
     .app-main {
         margin-left: 72px;
+        width: calc(100% - 72px);
     }
 
     .app-content {

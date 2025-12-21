@@ -17,7 +17,7 @@ const Sidebar = () => {
                         <rect x="12" y="8" width="3" height="8" rx="1.5" />
                     </svg>
                 </div>
-                <span className="logo-text">My Library</span>
+                <span className="logo-text">MusicStream</span>
             </div>
 
             <nav className="sidebar-nav">
@@ -41,27 +41,10 @@ const Sidebar = () => {
                     <span>Artists</span>
                 </NavLink>
 
-                {/* Artist-only links */}
-                {isArtist && (
-                    <>
-                        <div className="sidebar-divider" />
-                        <NavLink to="/home/my-songs" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                            <Music />
-                            <span>My Songs</span>
-                        </NavLink>
-                        <NavLink to="/home/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                            <UserCircle />
-                            <span>Artist Profile</span>
-                        </NavLink>
-                    </>
-                )}
-
                 {/* For Artist Section - Only visible for artist role */}
                 {isArtist && (
                     <>
-                        <div className="sidebar-divider">
-                            <span className="sidebar-section-label">For Artist</span>
-                        </div>
+                        <div className="sidebar-divider"/>
 
                         <NavLink to="/home/artist/albums" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                             <Album />
@@ -70,7 +53,7 @@ const Sidebar = () => {
 
                         <NavLink to="/home/artist/music" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                             <Music />
-                            <span>My Musics</span>
+                            <span>My Songs</span>
                         </NavLink>
 
                         <NavLink to="/home/artist/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>

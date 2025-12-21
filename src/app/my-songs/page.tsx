@@ -104,9 +104,7 @@ const MySongsPage = () => {
                                     {song.coverUrl ? (
                                         <img src={song.coverUrl} alt={song.title} />
                                     ) : (
-                                        <div className="song-card-cover-placeholder">
-                                            <Music />
-                                        </div>
+                                        <img src="/placeholders/music-track.svg" alt="No cover" className="song-card-cover-placeholder" />
                                     )}
                                 </div>
                                 <button className="play-btn">

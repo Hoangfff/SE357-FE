@@ -36,9 +36,6 @@ const LoginPage = () => {
         try {
             const response = await authService.login(email, password);
 
-            // Store both access token and refresh token
-            authService.storeTokens(response.accessToken, response.refreshToken);
-
             // Handle remember me
             if (rememberMe) {
                 localStorage.setItem('rememberedEmail', email);
@@ -46,21 +43,19 @@ const LoginPage = () => {
                 localStorage.removeItem('rememberedEmail');
             }
 
-            // Decode token to get user role
+            // Get user info from token in response
             const decoded = authService.decodeToken(response.accessToken);
-
             if (decoded) {
-                localStorage.setItem('userRole', decoded.role);
-                localStorage.setItem('userEmail', decoded.email);
+                authService.setUserFromToken(response.accessToken);
+            }
 
-                // Navigate based on role
-                if (decoded.role === 'ADMIN') {
-                    navigate('/admin');
-                } else {
-                    navigate('/home');
-                }
+            // Navigate based on role
+            const userRole = decoded?.role;
+            if (userRole === 'ADMIN') {
+                navigate('/admin');
+            } else if (userRole === 'ARTIST') {
+                navigate('/home/artist/music');
             } else {
-                // Default navigation if decode fails
                 navigate('/home');
             }
         } catch (err) {

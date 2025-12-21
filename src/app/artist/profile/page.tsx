@@ -67,13 +67,10 @@ const ArtistProfilePage = () => {
             <section className="profile-hero">
                 <div className="profile-hero-content">
                     <div className="profile-avatar">
-                        {artistProfile.avatarUrl ? (
-                            <img src={artistProfile.avatarUrl} alt={artistProfile.name} />
-                        ) : (
-                            <div className="profile-avatar-placeholder">
-                                {artistProfile.name.charAt(0)}
-                            </div>
-                        )}
+                        <img src={artistProfile.avatarUrl} alt={artistProfile.name} onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholders/user-avatar.svg';
+                        }} />
+
                     </div>
                     <div className="profile-info">
                         {artistProfile.verified && (
@@ -142,7 +139,7 @@ const ArtistProfilePage = () => {
                         <div key={song.id} className="profile-song-item">
                             <span className="song-number">{index + 1}</span>
                             <div className="song-cover">
-                                {song.coverUrl && <img src={song.coverUrl} alt={song.title} />}
+                                <img src={song.coverUrl || '/placeholders/music-track.svg'} alt={song.title} />
                             </div>
                             <div className="song-info">
                                 <h4>{song.title}</h4>
