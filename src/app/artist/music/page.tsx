@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music, X, Upload as UploadIcon, Image as ImageIcon } from 'lucide-react';
 import '@/styles/my-music-page.css';
 import { artistService } from '@/services/artistService';
+import { ENDPOINTS } from '@/config/api';
+import { apiClient } from '@/lib/apiClient';
 import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import UploadMusicModal from '../components/UploadMusicModal';
@@ -34,6 +36,17 @@ const MyMusicPage = () => {
 
     // Upload modal state
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadFormData, setUploadFormData] = useState({
+        title: '',
+        genre: '',
+        albumId: '',
+    });
+    const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [coverImage, setCoverImage] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [albums, setAlbums] = useState<Array<{ id: number; title: string }>>([]);
+    const audioInputRef = useRef<HTMLInputElement>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
 
     // Fetch tracks
     const fetchTracks = useCallback(async () => {
@@ -52,7 +65,18 @@ const MyMusicPage = () => {
 
     useEffect(() => {
         fetchTracks();
+        fetchAlbums();
     }, [fetchTracks]);
+
+    // Fetch albums for dropdown
+    const fetchAlbums = async () => {
+        try {
+            const data = await artistService.getAlbums();
+            setAlbums(data.map(album => ({ id: album.id, title: album.title })));
+        } catch (err) {
+            console.error('Failed to fetch albums:', err);
+        }
+    };
 
     // Delete track handler
     const handleDeleteTrack = async () => {
@@ -73,6 +97,72 @@ const MyMusicPage = () => {
     const handlePlayTrack = (track: Track) => {
         artistService.playAlbum([track]);
     };
+
+    // Upload form handlers
+    const handleUploadInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setUploadFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAudioFile(file);
+        }
+    };
+
+    const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCoverImage(file);
+        }
+    };
+
+    const resetUploadForm = () => {
+        setUploadFormData({ title: '', genre: '', albumId: '' });
+        setAudioFile(null);
+        setCoverImage(null);
+        if (audioInputRef.current) audioInputRef.current.value = '';
+        if (imageInputRef.current) imageInputRef.current.value = '';
+    };
+
+    const handleUploadSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!audioFile || !uploadFormData.title.trim()) return;
+
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('audioFile', audioFile);
+            formData.append('title', uploadFormData.title);
+            if (uploadFormData.genre) {
+                formData.append('genre', uploadFormData.genre);
+            }
+            if (uploadFormData.albumId) {
+                formData.append('albumId', uploadFormData.albumId);
+            }
+            if (coverImage) {
+                formData.append('coverImage', coverImage);
+            }
+
+            // Upload via artist music endpoint
+            await apiClient.post(ENDPOINTS.artist.music, formData);
+
+            // Refresh tracks list
+            await fetchTracks();
+
+            // Close modal and reset form
+            setIsUploadModalOpen(false);
+            resetUploadForm();
+        } catch (err) {
+            console.error('Failed to upload track:', err);
+            alert('Failed to upload track. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const isUploadFormValid = uploadFormData.title.trim() !== '' && audioFile !== null;
 
     // Filter and sort tracks
     const filteredTracks = tracks
@@ -228,9 +318,7 @@ const MyMusicPage = () => {
                                         {track.albumTracks?.[0]?.albums?.coverUrl ? (
                                             <img src={track.albumTracks[0].albums.coverUrl} alt={track.title} />
                                         ) : (
-                                            <div className="cover-placeholder">
-                                                <Music size={16} />
-                                            </div>
+                                            <img src="/placeholders/music-track.svg" alt="No cover" className="cover-placeholder" />
                                         )}
                                     </div>
                                     <div className="track-info">
@@ -283,9 +371,7 @@ const MyMusicPage = () => {
                                     {track.albumTracks?.[0]?.albums?.coverUrl ? (
                                         <img src={track.albumTracks[0].albums.coverUrl} alt={track.title} />
                                     ) : (
-                                        <div className="cover-placeholder">
-                                            <Music size={32} />
-                                        </div>
+                                        <img src="/placeholders/music-track.svg" alt="No cover" className="cover-placeholder" />
                                     )}
                                     <button
                                         className="play-btn-overlay"

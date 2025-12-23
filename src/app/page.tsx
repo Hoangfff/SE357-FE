@@ -58,7 +58,7 @@ const HomePage = () => {
                                         src={item.image}
                                         alt={item.title}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
                                         }}
                                     />
                                 </div>
@@ -95,7 +95,7 @@ const HomePage = () => {
                                         src={mix.image}
                                         alt={mix.title}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
                                         }}
                                     />
                                     <div className="mix-label">{mix.title}</div>
@@ -130,7 +130,7 @@ const HomePage = () => {
                                         src={artist.image}
                                         alt={artist.name}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).src = '/placeholders/user-avatar.svg';
                                         }}
                                     />
                                 </div>

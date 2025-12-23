@@ -58,9 +58,7 @@ const AdminLayout = () => {
                         alignItems: 'center',
                         justifyContent: 'center'
                     }}>
-                        {/* Placeholder Avatar */}
-                        <User size={24} />
-                        {/* <img src="..." alt="Profile" /> */}
+                        <img src="/placeholders/user-avatar.svg" alt="Profile" style={{ width: '100%', height: '100%' }} />
                     </div>
                 </div>
 

@@ -84,7 +84,7 @@ const AlbumsPage = () => {
                                             src={album.image}
                                             alt={album.title}
                                             onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
                                             }}
                                         />
                                     </div>
@@ -114,7 +114,7 @@ const AlbumsPage = () => {
                                     src={album.image}
                                     alt={album.title}
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
                                     }}
                                 />
                             </div>

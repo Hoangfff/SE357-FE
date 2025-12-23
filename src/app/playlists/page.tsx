@@ -32,7 +32,7 @@ const PlaylistsPage = () => {
                                     src={playlist.image}
                                     alt={playlist.title}
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
                                     }}
                                 />
                             </div>

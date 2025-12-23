@@ -58,15 +58,13 @@ const ApplicationDetailsModal = ({
                 <h2 style={titleStyle}>Application Details</h2>
 
                 {/* Application Photo */}
-                {application.photoUrl && (
-                    <div style={photoContainerStyle}>
-                        <img
-                            src={application.photoUrl}
-                            alt={application.stageName}
-                            style={photoStyle}
-                        />
-                    </div>
-                )}
+                <div style={photoContainerStyle}>
+                    <img
+                        src={application.photoUrl || '/placeholders/user-avatar.svg'}
+                        alt={application.stageName}
+                        style={photoStyle}
+                    />
+                </div>
 
                 {/* Form Fields */}
                 <div style={formContainerStyle}>

@@ -1,63 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { tokenManager } from '@/lib/apiClient';
+import apiClient, { userSession, tokenManager, refreshAccessToken } from '@/lib/apiClient';
+import { authService } from '@/services/authService';
+import { ENDPOINTS } from '@/config/api';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
 }
 
 /**
- * Decodes a JWT token to check expiration
- */
-function isTokenExpired(token: string): boolean {
-    try {
-        const payload = token.split('.')[1];
-        const decoded = JSON.parse(atob(payload));
-        // exp is in seconds, Date.now() is in milliseconds
-        const expirationTime = decoded.exp * 1000;
-        // Add 30 second buffer to prevent edge cases
-        return Date.now() >= expirationTime - 30000;
-    } catch {
-        return true; // If we can't decode, treat as expired
-    }
-}
-
-/**
- * Attempts to refresh the access token using the refresh token
- */
-async function tryRefreshToken(): Promise<boolean> {
-    const refreshToken = tokenManager.getRefreshToken();
-    if (!refreshToken) {
-        return false;
-    }
-
-    try {
-        const response = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
-        });
-
-        if (!response.ok) {
-            return false;
-        }
-
-        const data = await response.json();
-        if (data.accessToken) {
-            tokenManager.setToken(data.accessToken);
-            return true;
-        }
-
-        return false;
-    } catch {
-        return false;
-    }
-}
-
-/**
  * ProtectedRoute component that checks authentication
+ * Uses tokenManager and userSession for auth state
  * Redirects to /auth/login if user is not authenticated
  */
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -67,32 +20,43 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const accessToken = tokenManager.getToken();
+            const token = tokenManager.getToken();
 
-            // No access token at all
-            if (!accessToken) {
-                // Try to refresh
-                const refreshed = await tryRefreshToken();
-                setIsAuthenticated(refreshed);
-                setIsChecking(false);
-                return;
-            }
-
-            // Check if access token is expired
-            if (isTokenExpired(accessToken)) {
-                // Try to refresh
-                const refreshed = await tryRefreshToken();
-                if (!refreshed) {
-                    // Clear all tokens if refresh failed
-                    tokenManager.clearAll();
+            if (token) {
+                // Restore user session from localStorage if needed
+                if (!userSession.getUser()) {
+                    const storedRole = localStorage.getItem('userRole');
+                    const storedEmail = localStorage.getItem('userEmail');
+                    if (storedRole && storedEmail) {
+                        userSession.setUser({
+                            id: '',
+                            email: storedEmail,
+                            role: storedRole,
+                        });
+                    }
                 }
-                setIsAuthenticated(refreshed);
-                setIsChecking(false);
-                return;
+                setIsAuthenticated(true);
+            } else {
+                try {
+                    await authService.refreshAuthToken();
+
+                    const storedRole = localStorage.getItem('userRole');
+                    const storedEmail = localStorage.getItem('userEmail');
+                    if (storedRole && storedEmail) {
+                        userSession.setUser({
+                            id: '',
+                            email: storedEmail,
+                            role: storedRole,
+                        });
+                    }
+                    setIsAuthenticated(true);
+
+                } catch (err) {
+                    console.log("Error while refreshing: ", err);
+                    setIsAuthenticated(false);
+                }
             }
 
-            // Token exists and is not expired
-            setIsAuthenticated(true);
             setIsChecking(false);
         };
 

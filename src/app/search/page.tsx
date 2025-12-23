@@ -110,7 +110,10 @@ const SearchPage = () => {
                                                 src={result.image}
                                                 alt={result.title}
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    const placeholder = result.type === 'artist' 
+                                                        ? '/placeholders/user-avatar.svg' 
+                                                        : '/placeholders/music-track.svg';
+                                                    (e.target as HTMLImageElement).src = placeholder;
                                                 }}
                                             />
                                         </div>

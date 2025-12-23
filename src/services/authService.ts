@@ -1,6 +1,6 @@
 // Authentication service
 import { ENDPOINTS } from '@/config/api';
-import { apiClient, tokenManager } from '@/lib/apiClient';
+import { apiClient, userSession, tokenManager } from '@/lib/apiClient';
 
 // Auth API response types
 export interface AuthResponse {
@@ -11,6 +11,16 @@ export interface AuthResponse {
 export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
+    user?: {
+        id: string;
+        email: string;
+        role: string;
+    };
+}
+
+export interface RefreshResponse {
+    message?: string;
+    accessToken?: string;
 }
 
 export interface ApiError {
@@ -42,14 +52,30 @@ export const authService = {
     },
 
     /**
-     * Login user
+     * Login user - stores tokens and user info
      */
     async login(email: string, password: string): Promise<LoginResponse> {
-        return apiClient.post<LoginResponse>(
+        const response = await apiClient.post<LoginResponse>(
             ENDPOINTS.auth.login,
             { email, password },
             { skipAuth: true }
         );
+
+        // Store tokens
+        if (response.accessToken) {
+            tokenManager.setToken(response.accessToken);
+        }
+
+        // If the backend returns user info, store it in memory
+        if (response.user) {
+            userSession.setUser({
+                id: response.user.id,
+                email: response.user.email,
+                role: response.user.role,
+            });
+        }
+
+        return response;
     },
 
     /**
@@ -86,57 +112,51 @@ export const authService = {
     },
 
     /**
-     * Logout user
+     * Logout user - clears tokens and user data
      */
     async logout(): Promise<void> {
         try {
-            // Call logout API endpoint
             await apiClient.post(ENDPOINTS.auth.logout);
         } catch (error) {
-            // Continue with logout even if API call fails
             console.error('Logout API error:', error);
         } finally {
-            // Always clear tokens locally
+            // Always clear tokens and user session
             tokenManager.clearAll();
+            userSession.clearUser();
         }
     },
 
     /**
-     * Store auth token
+     * Refresh the token stored in cookies
      */
-    storeToken(token: string): void {
-        tokenManager.setToken(token);
-        localStorage.setItem('isAuthenticated', 'true');
+    async refreshAuthToken(): Promise<RefreshResponse> {
+        const res = await apiClient.get<RefreshResponse>(ENDPOINTS.auth.refresh);
+        if (res.accessToken) tokenManager.setToken(res.accessToken);
+        return res;
     },
 
     /**
-     * Store refresh token
+     * Get current user from session
      */
-    storeRefreshToken(token: string): void {
-        tokenManager.setRefreshToken(token);
-    },
-
-    /**
-     * Store both tokens at once
-     */
-    storeTokens(accessToken: string, refreshToken: string): void {
-        tokenManager.setToken(accessToken);
-        tokenManager.setRefreshToken(refreshToken);
-        localStorage.setItem('isAuthenticated', 'true');
-    },
-
-    /**
-     * Get stored token
-     */
-    getToken(): string | null {
-        return tokenManager.getToken();
+    getUser(): { id: string; email: string; role: string } | null {
+        return userSession.getUser();
     },
 
     /**
      * Check if user is authenticated
      */
     isAuthenticated(): boolean {
-        return !!tokenManager.getToken();
+        return userSession.isAuthenticated();
+    },
+
+    /**
+     * Store user info after successful login (when backend doesn't return user in response)
+     */
+    setUserFromToken(accessToken: string): void {
+        const decoded = this.decodeToken(accessToken);
+        if (decoded) {
+            userSession.setUser(decoded);
+        }
     },
 
     /**

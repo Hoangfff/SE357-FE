@@ -203,17 +203,11 @@ const AccountsPage = () => {
                     <div style={accountInfoContainerStyle}>
                         {/* Left: Profile Image */}
                         <div style={profileImageContainerStyle}>
-                            {profileImageUrl ? (
-                                <img
-                                    src={profileImageUrl}
-                                    alt="Profile"
-                                    style={profileImageStyle}
-                                />
-                            ) : (
-                                <div style={profilePlaceholderStyle}>
-                                    <User size={48} color="var(--text-secondary)" />
-                                </div>
-                            )}
+                            <img
+                                src={profileImageUrl || '/placeholders/user-avatar.svg'}
+                                alt="Profile"
+                                style={profileImageStyle}
+                            />
                         </div>
 
                         {/* Middle: Name & Join Date */}

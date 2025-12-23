@@ -28,7 +28,7 @@ const ArtistsPage = () => {
                                     src={artist.image}
                                     alt={artist.name}
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).src = '/placeholders/user-avatar.svg';
                                     }}
                                 />
                             </div>

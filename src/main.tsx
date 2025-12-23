@@ -96,19 +96,6 @@ const router = createBrowserRouter([
         path: 'artists',
         element: <ArtistsPage />,
       },
-      // Artist-specific routes
-      {
-        path: 'profile',
-        element: <ArtistProfilePage />,
-      },
-      {
-        path: 'my-songs',
-        element: <MySongsPage />,
-      },
-      {
-        path: 'my-songs/upload',
-        element: <UploadSongPage />,
-      },
       {
         path: 'search',
         element: <SearchPage />,
@@ -140,7 +127,7 @@ const router = createBrowserRouter([
       },
       {
         path: '*',
-        element: <div style={{ padding: '2rem' }}><h1>Comming Soon...</h1></div>
+        element: <div style={{ padding: '2rem' }}><h1>404 Not Found...</h1></div>
       }
     ],
   },
