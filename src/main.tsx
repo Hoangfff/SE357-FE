@@ -23,6 +23,7 @@ import HelpCenterPage from './app/admin/help/page'
 
 // Import new pages
 import PlaylistsPage from './app/playlists/page'
+import PlaylistDetailPage from './app/playlists/[id]/page'
 import LikedSongsPage from './app/liked-songs/page'
 import AlbumsPage from './app/albums/page'
 import ArtistsPage from './app/artists/page'
@@ -82,6 +83,10 @@ const router = createBrowserRouter([
       {
         path: 'playlists',
         element: <PlaylistsPage />,
+      },
+      {
+        path: 'playlists/:id',
+        element: <PlaylistDetailPage />,
       },
       {
         path: 'liked-songs',

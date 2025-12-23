@@ -1,22 +1,41 @@
 // Music service - handles API calls for music data
-// TODO: Implement actual API calls using these imports
-// import { API_BASE_URL, ENDPOINTS } from '@/config/api';
-import type { Track, Playlist } from '@/types';
+import { apiClient } from '@/lib/apiClient';
+import { ENDPOINTS } from '@/config/api';
+import type { Playlist } from '@/types';
+
+// Track type from API
+export interface MusicTrack {
+    id: number;
+    title: string;
+    genre?: string;
+    description?: string;
+    file_url: string;
+    vote_count: number;
+    created_at: string;
+    artist_id: number;
+    deleted_at: string | null;
+    artist_profiles?: {
+        id: number;
+        stage_name: string;
+        photo_url?: string;
+    };
+}
 
 export const musicService = {
     /**
-     * Fetch all tracks
+     * Fetch all tracks from the API
      */
-    async getTracks(): Promise<Track[]> {
-        // TODO: Implement API call
-        // const response = await fetch(`${API_BASE_URL}${ENDPOINTS.music.tracks}`);
-        // return response.json();
+    async getTracks(): Promise<MusicTrack[]> {
+        return apiClient.get<MusicTrack[]>(ENDPOINTS.music.tracks);
+    },
 
-        // Mock data for now
-        return [
-            { id: '1', title: 'Midnight Dreams', artist: 'Luna Sky', duration: 245, album: 'Starlight' },
-            { id: '2', title: 'Electric Pulse', artist: 'Neon Waves', duration: 198, album: 'Synthwave Vol. 1' },
-        ];
+    /**
+     * Search tracks
+     */
+    async searchTracks(query: string): Promise<MusicTrack[]> {
+        return apiClient.get<MusicTrack[]>(ENDPOINTS.music.search, {
+            params: { q: query }
+        });
     },
 
     /**

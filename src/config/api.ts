@@ -30,11 +30,16 @@ export const ENDPOINTS = {
 
     // User endpoints
     user: {
-        profile: '/users/profile',
-        profileById: (id: string) => `/users/${id}`,
-        favorites: '/users/favorites',
-        history: '/users/history',
-        settings: '/users/settings',
+        profile: '/user/profile',
+        profileById: (id: string) => `/user/${id}`,
+        favorites: '/user/favorites',
+        history: '/user/history',
+        settings: '/user/settings',
+        // Playlist endpoints
+        playlists: '/user/playlists',
+        playlistById: (id: string) => `/user/playlists/${id}`,
+        playlistTracks: (playlistId: string) => `/user/playlists/${playlistId}/tracks`,
+        playlistTrackById: (playlistId: string, trackId: string) => `/user/playlists/${playlistId}/tracks/${trackId}`,
     },
 
     // Admin endpoints
