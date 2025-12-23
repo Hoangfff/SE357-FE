@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Search, List, Grid, ArrowUpDown, Filter, Trash2, MoreHorizontal, Loader2, Music, X, Upload as UploadIcon, Image as ImageIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { ArrowUpDown, Filter, Grid, List, Loader2, MoreHorizontal, Music, Play, Search, Trash2, Upload as UploadIcon, X } from 'lucide-react';
 import '@/styles/my-music-page.css';
 import { artistService } from '@/services/artistService';
 import { ENDPOINTS } from '@/config/api';
-import { apiClient } from '@/lib/apiClient';
+import { apiClient, type ApiError } from '@/lib/apiClient';
 import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
@@ -38,14 +38,11 @@ const MyMusicPage = () => {
     const [uploadFormData, setUploadFormData] = useState({
         title: '',
         genre: '',
-        albumId: '',
+        description: '',
     });
     const [audioFile, setAudioFile] = useState<File | null>(null);
-    const [coverImage, setCoverImage] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [albums, setAlbums] = useState<Array<{ id: number; title: string }>>([]);
     const audioInputRef = useRef<HTMLInputElement>(null);
-    const imageInputRef = useRef<HTMLInputElement>(null);
 
     // Fetch tracks
     const fetchTracks = useCallback(async () => {
@@ -64,18 +61,7 @@ const MyMusicPage = () => {
 
     useEffect(() => {
         fetchTracks();
-        fetchAlbums();
     }, [fetchTracks]);
-
-    // Fetch albums for dropdown
-    const fetchAlbums = async () => {
-        try {
-            const data = await artistService.getAlbums();
-            setAlbums(data.map(album => ({ id: album.id, title: album.title })));
-        } catch (err) {
-            console.error('Failed to fetch albums:', err);
-        }
-    };
 
     // Delete track handler
     const handleDeleteTrack = async () => {
@@ -98,64 +84,58 @@ const MyMusicPage = () => {
     };
 
     // Upload form handlers
-    const handleUploadInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleUploadInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setUploadFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setAudioFile(file);
-        }
-    };
-
-    const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setCoverImage(file);
-        }
+    const handleAudioChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setAudioFile(file);
     };
 
     const resetUploadForm = () => {
-        setUploadFormData({ title: '', genre: '', albumId: '' });
+        setUploadFormData({ title: '', genre: '', description: '' });
         setAudioFile(null);
-        setCoverImage(null);
-        if (audioInputRef.current) audioInputRef.current.value = '';
-        if (imageInputRef.current) imageInputRef.current.value = '';
+        if (audioInputRef.current) {
+            audioInputRef.current.value = '';
+        }
     };
 
-    const handleUploadSubmit = async (e: React.FormEvent) => {
+    const handleUploadSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!audioFile || !uploadFormData.title.trim()) return;
+        if (!audioFile) {
+            alert('Please select an audio file.');
+            return;
+        }
 
         setIsUploading(true);
+
+        const formData = new FormData();
+        formData.append('file', audioFile);
+        formData.append('title', uploadFormData.title.trim());
+        if (uploadFormData.genre.trim()) formData.append('genre', uploadFormData.genre.trim());
+        if (uploadFormData.description.trim()) formData.append('description', uploadFormData.description.trim());
+
         try {
-            const formData = new FormData();
-            formData.append('audioFile', audioFile);
-            formData.append('title', uploadFormData.title);
-            if (uploadFormData.genre) {
-                formData.append('genre', uploadFormData.genre);
-            }
-            if (uploadFormData.albumId) {
-                formData.append('albumId', uploadFormData.albumId);
-            }
-            if (coverImage) {
-                formData.append('coverImage', coverImage);
-            }
-
-            // Upload via artist music endpoint
-            await apiClient.post(ENDPOINTS.artist.music, formData);
-
-            // Refresh tracks list
+            const directUrl = 'https://music-share-system.onrender.com/artist/music';
+            await apiClient.instance.post(directUrl, formData, { withCredentials: true });
             await fetchTracks();
-
-            // Close modal and reset form
             setIsUploadModalOpen(false);
             resetUploadForm();
         } catch (err) {
-            console.error('Failed to upload track:', err);
-            alert('Failed to upload track. Please try again.');
+            const apiErr = err as ApiError;
+            console.error('Direct upload failed, falling back to proxy...', apiErr);
+
+            try {
+                await apiClient.post(ENDPOINTS.artist.music, formData);
+                await fetchTracks();
+                setIsUploadModalOpen(false);
+                resetUploadForm();
+            } catch (proxyErr) {
+                console.error('Failed to upload track via proxy:', proxyErr);
+                alert('Failed to upload track. Please try again.');
+            }
         } finally {
             setIsUploading(false);
         }
@@ -185,7 +165,6 @@ const MyMusicPage = () => {
             return sortOrder === 'asc' ? comparison : -comparison;
         });
 
-    // Format duration (placeholder - would need actual duration from track)
     const formatDuration = (seconds?: number) => {
         if (!seconds) return '--:--';
         const mins = Math.floor(seconds / 60);
@@ -193,7 +172,6 @@ const MyMusicPage = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Get album name from track
     const getAlbumName = (track: Track) => {
         if (track.albumTracks && track.albumTracks.length > 0 && track.albumTracks[0].albums) {
             return track.albumTracks[0].albums.title;
@@ -216,7 +194,7 @@ const MyMusicPage = () => {
         <div className="my-music-page">
             {/* Toolbar */}
             <div className="music-toolbar">
-                <button 
+                <button
                     className="add-music-btn"
                     onClick={() => setIsUploadModalOpen(true)}
                     title="Upload new track"
@@ -225,7 +203,6 @@ const MyMusicPage = () => {
                 </button>
 
                 <div className="toolbar-right">
-                    {/* View Toggle */}
                     <div className="view-toggle">
                         <button
                             className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
@@ -243,7 +220,6 @@ const MyMusicPage = () => {
                         </button>
                     </div>
 
-                    {/* Sort */}
                     <button
                         className="toolbar-btn"
                         onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
@@ -253,13 +229,11 @@ const MyMusicPage = () => {
                         <span>Recent</span>
                     </button>
 
-                    {/* Filter */}
                     <button className="toolbar-btn" title="Filter">
                         <Filter size={18} />
                         <span>Filter: All</span>
                     </button>
 
-                    {/* Search */}
                     <div className="search-box">
                         <Search size={18} />
                         <input
@@ -446,20 +420,17 @@ const MyMusicPage = () => {
                             </div>
 
                             <div className="form-section">
-                                <label htmlFor="albumId" className="form-label">Album (Optional)</label>
-                                <select
-                                    id="albumId"
-                                    name="albumId"
-                                    value={uploadFormData.albumId}
+                                <label className="form-label" htmlFor="description">Description (Optional)</label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    value={uploadFormData.description}
                                     onChange={handleUploadInputChange}
-                                    className="form-select"
+                                    className="form-textarea"
+                                    placeholder="Add a short description"
                                     disabled={isUploading}
-                                >
-                                    <option value="">Single (No Album)</option>
-                                    {albums.map(album => (
-                                        <option key={album.id} value={album.id}>{album.title}</option>
-                                    ))}
-                                </select>
+                                    rows={3}
+                                />
                             </div>
 
                             {/* Audio File Upload */}
@@ -482,29 +453,6 @@ const MyMusicPage = () => {
                                         {audioFile ? audioFile.name : 'Click to upload audio file'}
                                     </p>
                                     <p className="file-upload-hint">MP3, WAV, FLAC up to 50MB</p>
-                                </div>
-                            </div>
-
-                            {/* Cover Image Upload */}
-                            <div className="form-section">
-                                <label className="form-label">Cover Image (Optional)</label>
-                                <input
-                                    type="file"
-                                    ref={imageInputRef}
-                                    onChange={handleCoverChange}
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    disabled={isUploading}
-                                />
-                                <div
-                                    className={`file-upload-box ${coverImage ? 'has-file' : ''}`}
-                                    onClick={() => !isUploading && imageInputRef.current?.click()}
-                                >
-                                    <ImageIcon size={24} />
-                                    <p className="file-upload-text">
-                                        {coverImage ? coverImage.name : 'Click to upload cover image'}
-                                    </p>
-                                    <p className="file-upload-hint">JPG, PNG up to 5MB (Square recommended)</p>
                                 </div>
                             </div>
 
