@@ -17,8 +17,10 @@ export const ENDPOINTS = {
 
     // Music/Tracks endpoints
     music: {
+        all: '/music/all',
         tracks: '/tracks',
         trackById: (id: string) => `/tracks/${id}`,
+        stream: (id: string) => `/music/${id}/stream`,
         upload: '/tracks/upload',
         search: '/tracks/search',
         trending: '/tracks/trending',

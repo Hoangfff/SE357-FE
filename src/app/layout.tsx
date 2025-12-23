@@ -21,17 +21,6 @@ const Layout = () => {
         };
     }, [navigate]);
 
-    // Default track for the player (demo song)
-    const defaultTrack = {
-        id: '1',
-        title: 'Acoustic Breeze',
-        artist: 'Benjamin Tissot',
-        album: 'Bensound Collection',
-        duration: 145,
-        coverUrl: 'https://i.scdn.co/image/ab67616d0000b273a7c37f72a5d1040c05e30916',
-        audioUrl: 'https://www.bensound.com/bensound-music/bensound-acousticbreeze.mp3'
-    };
-
     return (
         <div className="app-layout">
             <Sidebar />
@@ -41,7 +30,7 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
-            <MusicPlayer track={defaultTrack} />
+            <MusicPlayer />
         </div>
     );
 };

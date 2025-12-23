@@ -3,34 +3,71 @@ import { apiClient } from '@/lib/apiClient';
 import { ENDPOINTS } from '@/config/api';
 import type { Playlist } from '@/types';
 
-// Track type from API
+export interface MusicStats {
+    id: number;
+    listens: number;
+    shares: number;
+    updatedAt: string;
+    musicId: number;
+}
+
+export interface MusicArtistProfile {
+    id: number;
+    bio: string | null;
+    photoUrl: string | null;
+    socialLinks: string | null;
+    stageName: string;
+    status: string;
+    updatedAt: string;
+    userId: number;
+    users?: {
+        id: number;
+        name: string;
+        email: string;
+    };
+}
+
+export interface MusicAlbumTrack {
+    id: number;
+    trackOrder: number;
+    albumId: number;
+    trackId: number;
+    albums?: {
+        id: number;
+        coverUrl: string | null;
+        createdAt: string;
+        description: string | null;
+        title: string;
+        artistId: number;
+    };
+}
+
+// Track type from /music/all API
 export interface MusicTrack {
     id: number;
-    title: string;
-    genre?: string;
+    createdAt: string;
     description?: string;
-    file_url: string;
-    vote_count: number;
-    created_at: string;
-    artist_id: number;
-    deleted_at: string | null;
-    artist_profiles?: {
-        id: number;
-        stage_name: string;
-        photo_url?: string;
-    };
+    fileUrl: string;
+    genre?: string;
+    title: string;
+    voteCount: number;
+    artistId: number;
+    deletedAt: string | null;
+    artistProfiles?: MusicArtistProfile;
+    musicStats?: MusicStats[];
+    albumTracks?: MusicAlbumTrack[];
 }
 
 export const musicService = {
     /**
-     * Fetch all tracks from the API
+     * Fetch all tracks from the /music/all endpoint
      */
     async getTracks(): Promise<MusicTrack[]> {
-        return apiClient.get<MusicTrack[]>(ENDPOINTS.music.tracks);
+        return apiClient.get<MusicTrack[]>(ENDPOINTS.music.all);
     },
 
     /**
-     * Search tracks
+     * Search tracks (fallback to legacy search endpoint if available)
      */
     async searchTracks(query: string): Promise<MusicTrack[]> {
         return apiClient.get<MusicTrack[]>(ENDPOINTS.music.search, {
@@ -47,10 +84,49 @@ export const musicService = {
     },
 
     /**
-     * Play a track
+     * Resolve a streaming URL with a 5s fallback to the provided fileUrl
      */
-    async playTrack(trackId: string): Promise<void> {
-        // TODO: Implement playback logic
-        console.log('Playing track:', trackId);
+    async getStreamUrl(trackId: string, fallbackUrl?: string, timeoutMs: number = 5000): Promise<string> {
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+        const streamRequest = apiClient.get<{ url?: string; streamUrl?: string; data?: string } | string>(
+            ENDPOINTS.music.stream(trackId)
+        );
+
+        const timeoutPromise = new Promise<string>((resolve, reject) => {
+            timeoutId = setTimeout(() => {
+                if (fallbackUrl) {
+                    resolve(fallbackUrl);
+                } else {
+                    reject(new Error('Stream request timed out'));
+                }
+            }, timeoutMs);
+        });
+
+        try {
+            const result = await Promise.race([streamRequest, timeoutPromise]);
+
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            if (typeof result === 'string') {
+                return result;
+            }
+
+            if (result?.url) return result.url;
+            if (result?.streamUrl) return result.streamUrl;
+            if (result?.data) return result.data;
+
+            if (fallbackUrl) return fallbackUrl;
+            throw new Error('Stream URL not found');
+        } catch (error) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            if (fallbackUrl) return fallbackUrl;
+            throw error;
+        }
     },
 };

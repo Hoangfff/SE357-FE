@@ -43,6 +43,7 @@ import ArtistProfilePage from './app/artist/profile/page'
 
 // Auth protection
 import ProtectedRoute from './components/ProtectedRoute'
+import { PlayerProvider } from './providers/PlayerProvider'
 
 // Create router with layout-based structure
 const router = createBrowserRouter([
@@ -173,6 +174,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <PlayerProvider>
+      <RouterProvider router={router} />
+    </PlayerProvider>
   </StrictMode>,
 )
