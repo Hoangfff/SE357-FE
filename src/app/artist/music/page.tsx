@@ -6,6 +6,7 @@ import '@/styles/my-music-page.css';
 import { artistService } from '@/services/artistService';
 import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import UploadMusicModal from '../components/UploadMusicModal';
 
 type ViewMode = 'list' | 'grid';
 type SortField = 'title' | 'createdAt' | 'voteCount';
@@ -30,6 +31,9 @@ const MyMusicPage = () => {
         trackId: number | null;
         title: string;
     }>({ isOpen: false, trackId: null, title: '' });
+
+    // Upload modal state
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
     // Fetch tracks
     const fetchTracks = useCallback(async () => {
@@ -123,7 +127,11 @@ const MyMusicPage = () => {
         <div className="my-music-page">
             {/* Toolbar */}
             <div className="music-toolbar">
-                <button className="add-music-btn">
+                <button
+                    className="add-music-btn"
+                    onClick={() => setIsUploadModalOpen(true)}
+                    title="Upload new track"
+                >
                     <span>+</span>
                 </button>
 
@@ -304,6 +312,13 @@ const MyMusicPage = () => {
                 title="Delete Track?"
                 message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
                 isLoading={isDeleting}
+            />
+
+            {/* Upload Music Modal */}
+            <UploadMusicModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onSuccess={fetchTracks}
             />
         </div>
     );

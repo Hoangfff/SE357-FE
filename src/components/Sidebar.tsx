@@ -42,7 +42,7 @@ const Sidebar = () => {
                 </NavLink>
 
                 {/* Artist-only links */}
-                {isArtist && (
+                {/* {isArtist && (
                     <>
                         <div className="sidebar-divider" />
                         <NavLink to="/home/my-songs" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
@@ -54,7 +54,7 @@ const Sidebar = () => {
                             <span>Artist Profile</span>
                         </NavLink>
                     </>
-                )}
+                )} */}
 
                 {/* For Artist Section - Only visible for artist role */}
                 {isArtist && (
