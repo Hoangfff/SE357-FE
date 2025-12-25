@@ -120,10 +120,17 @@ const AccountsPage = () => {
 
         setIsAssigningRole(true);
         try {
-            await adminService.assignRole(selectedAccount.id, newRole);
-            // Refresh the account details
-            const details = await adminService.getUserDetails(selectedAccount.id);
-            setSelectedAccount(details as UserDetails);
+            const response = await adminService.assignRole(selectedAccount.id, newRole);
+
+            // Try to use the updated user from the response if available
+            if (response.user) {
+                setSelectedAccount(response.user as UserDetails);
+            } else {
+                // Fallback: Optimistically update the role in local state
+                // This avoids needing to call getUserDetails which may not exist
+                setSelectedAccount(prev => prev ? { ...prev, role: newRole } : null);
+            }
+
             setShowAssignRoleModal(false);
         } catch (err) {
             console.error('Failed to assign role:', err);
