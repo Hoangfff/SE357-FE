@@ -1,16 +1,16 @@
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Play } from '@/lib/icons';
+import { musicService, type MusicTrack } from '@/services/musicService';
+import { usePlayer } from '@/providers/PlayerProvider';
 import '@/styles/home-page.css';
 
-// Sample data for the sections
-const madeForYouItems = [
-    { id: 1, title: 'Discover Weekly', subtitle: 'Your weekly mixtape of fresh music.', gradient: 'linear-gradient(135deg, #1e3264 0%, #1e3264 100%)', image: 'https://i.scdn.co/image/ab67706f000000027b2e7ee752dc222ff2fd466f' },
-    { id: 2, title: 'Daily Mix 1', subtitle: 'Linkin Park, System Of A Down, Coal Chamber...', gradient: 'linear-gradient(135deg, #e61e32 0%, #dc1e28 100%)', image: 'https://dailymix-images.scdn.co/v2/img/ab6761610000e5eb5a00969a4698c3132a15fbb2/1/en/default' },
-    { id: 3, title: 'Daily Mix 2', subtitle: 'Avril Lavigne, Lorde, Charli XCX and more', gradient: 'linear-gradient(135deg, #e8115b 0%, #e8115b 100%)', image: 'https://dailymix-images.scdn.co/v2/img/ab6761610000e5eb0dc29c6e2df5f2e7e0b9a0bc/2/en/default' },
-    { id: 4, title: 'Daily Mix 3', subtitle: 'The Strokes, Martin Garrix, MGMT and more', gradient: 'linear-gradient(135deg, #006450 0%, #008a5f 100%)', image: 'https://dailymix-images.scdn.co/v2/img/ab6761610000e5eb8ae7f2aaa9817a704a87ea36/3/en/default' },
-    { id: 5, title: 'Daily Mix 4', subtitle: 'Chuck Berry, Elvis Presley, Roy Orbison and more', gradient: 'linear-gradient(135deg, #8d67ab 0%, #af2896 100%)', image: 'https://dailymix-images.scdn.co/v2/img/ab6761610000e5ebce02c3c9b8c8f4a6e6e5e5e5/4/en/default' },
-    { id: 6, title: 'Daily Mix 5', subtitle: 'Frank Sinatra, Gerhard Trede, Dean Martin and more', gradient: 'linear-gradient(135deg, #1e90ff 0%, #148eff 100%)', image: 'https://dailymix-images.scdn.co/v2/img/ab6761610000e5eb4a6c2eb3c3f2e7e0b9a0bc12/5/en/default' },
-    { id: 7, title: 'Nirvana Radio', subtitle: 'The Strokes, Martin Garrix, MGMT and more', gradient: 'linear-gradient(135deg, #e13300 0%, #f40 100%)', image: 'https://i.scdn.co/image/ab6761610000e5eb022d80b3224ee3a1c3e9d2c9' },
-    { id: 8, title: 'Fall Out Boy Ra...', subtitle: 'Fall Out Boy, All Time Low, The All-American Rejects...', gradient: 'linear-gradient(135deg, #d84000 0%, #e61e32 100%)', image: 'https://i.scdn.co/image/ab6761610000e5eb0dc29c6e2df5f2e7e0b9a0bc' },
+const gradients = [
+    'linear-gradient(135deg, #1e3264 0%, #1e3264 100%)',
+    'linear-gradient(135deg, #e61e32 0%, #dc1e28 100%)',
+    'linear-gradient(135deg, #e8115b 0%, #e8115b 100%)',
+    'linear-gradient(135deg, #006450 0%, #008a5f 100%)',
+    'linear-gradient(135deg, #8d67ab 0%, #af2896 100%)',
+    'linear-gradient(135deg, #1e90ff 0%, #148eff 100%)',
 ];
 
 const topMixes = [
@@ -34,6 +34,72 @@ const favoriteArtists = [
 ];
 
 const HomePage = () => {
+    const [madeForYou, setMadeForYou] = useState<MusicTrack[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
+    const { play } = usePlayer();
+
+    useEffect(() => {
+        const fetchTracks = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const tracks = await musicService.getTracks();
+                setMadeForYou(tracks);
+            } catch (err) {
+                console.error('Failed to load music:', err);
+                setError('Unable to load your recommendations right now.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTracks();
+    }, []);
+
+    const handlePlayTrack = async (track: MusicTrack) => {
+        const fallbackUrl = track.fileUrl;
+        setPlayingTrackId(track.id);
+
+        try {
+            const streamUrl = await musicService.getStreamUrl(String(track.id), fallbackUrl);
+            const audioUrl = streamUrl || fallbackUrl;
+
+            if (!audioUrl) {
+                setError('No audio source available for this track.');
+                return;
+            }
+
+            play({
+                id: String(track.id),
+                title: track.title,
+                artist: track.artistProfiles?.stageName || track.artistProfiles?.users?.name || 'Unknown Artist',
+                album: track.albumTracks?.[0]?.albums?.title,
+                duration: 0,
+                coverUrl: track.albumTracks?.[0]?.albums?.coverUrl || track.artistProfiles?.photoUrl || undefined,
+                audioUrl,
+            });
+        } catch (err) {
+            console.error('Failed to start playback:', err);
+            if (fallbackUrl) {
+                play({
+                    id: String(track.id),
+                    title: track.title,
+                    artist: track.artistProfiles?.stageName || track.artistProfiles?.users?.name || 'Unknown Artist',
+                    album: track.albumTracks?.[0]?.albums?.title,
+                    duration: 0,
+                    coverUrl: track.albumTracks?.[0]?.albums?.coverUrl || track.artistProfiles?.photoUrl || undefined,
+                    audioUrl: fallbackUrl,
+                });
+            } else {
+                setError('Could not play this track.');
+            }
+        } finally {
+            setPlayingTrackId(null);
+        }
+    };
+
     return (
         <div className="home-page">
             {/* Made For You Section */}
@@ -47,29 +113,58 @@ const HomePage = () => {
                     </div>
                 </div>
                 <div className="card-scroll">
-                    {madeForYouItems.map((item) => (
-                        <div key={item.id} className="music-card">
-                            <div className="card-image-container">
-                                <div
-                                    className="card-image"
-                                    style={{ background: item.gradient }}
-                                >
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
-                                        }}
-                                    />
-                                </div>
-                                <button className="card-play-btn">
-                                    <Play />
-                                </button>
-                            </div>
-                            <h3 className="card-title">{item.title}</h3>
-                            <p className="card-subtitle">{item.subtitle}</p>
+                    {isLoading && (
+                        <div className="music-card" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <p>Loading your picks...</p>
                         </div>
-                    ))}
+                    )}
+
+                    {!isLoading && error && (
+                        <div className="music-card" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <p>{error}</p>
+                        </div>
+                    )}
+
+                    {!isLoading && !error && madeForYou.length === 0 && (
+                        <div className="music-card" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <p>No tracks available yet.</p>
+                        </div>
+                    )}
+
+                    {!isLoading && !error && madeForYou.map((track, index) => {
+                        const image = track.albumTracks?.[0]?.albums?.coverUrl || track.artistProfiles?.photoUrl || '/placeholders/music-track.svg';
+                        const artistName = track.artistProfiles?.stageName || track.artistProfiles?.users?.name || 'Unknown Artist';
+                        const subtitle = track.genre ? `${artistName} • ${track.genre}` : artistName;
+
+                        return (
+                            <div key={track.id} className="music-card">
+                                <div className="card-image-container">
+                                    <div
+                                        className="card-image"
+                                        style={{ background: gradients[index % gradients.length] }}
+                                    >
+                                        <img
+                                            src={image}
+                                            alt={track.title}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        className="card-play-btn"
+                                        onClick={() => handlePlayTrack(track)}
+                                        disabled={playingTrackId === track.id}
+                                        aria-label={`Play ${track.title}`}
+                                    >
+                                        {playingTrackId === track.id ? '...' : <Play />}
+                                    </button>
+                                </div>
+                                <h3 className="card-title">{track.title}</h3>
+                                <p className="card-subtitle">{subtitle}</p>
+                            </div>
+                        );
+                    })}
                 </div>
             </section>
 

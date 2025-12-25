@@ -20,6 +20,53 @@ export interface Playlist {
     updatedAt: Date;
 }
 
+// API Playlist types (from backend)
+export interface PlaylistArtistProfile {
+    id: number;
+    bio: string | null;
+    photo_url: string | null;
+    social_links: string | null;
+    stage_name: string;
+    status: string;
+    updated_at: string;
+    user_id: number;
+}
+
+export interface PlaylistTrackMusic {
+    id: number;
+    created_at: string;
+    description: string;
+    file_url: string;
+    genre: string;
+    title: string;
+    vote_count: number;
+    artist_id: number;
+    deleted_at: string | null;
+    artist_profiles: PlaylistArtistProfile;
+}
+
+export interface PlaylistTrack {
+    id: number;
+    added_at: string;
+    track_order: number;
+    track_id: number;
+    playlist_id: number;
+    music: PlaylistTrackMusic;
+}
+
+export interface ApiPlaylist {
+    id: number;
+    creationDate: string;
+    name: string;
+    userId: number;
+    playlistTracks: PlaylistTrack[];
+}
+
+export interface AddTrackResponse {
+    message: string;
+    playlistTrack: PlaylistTrack;
+}
+
 export interface User {
     id: string;
     email: string;

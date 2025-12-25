@@ -35,28 +35,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
                         });
                     }
                 }
-                setIsAuthenticated(true);
-            } else {
                 try {
                     await authService.refreshAuthToken();
-
-                    const storedRole = localStorage.getItem('userRole');
-                    const storedEmail = localStorage.getItem('userEmail');
-                    if (storedRole && storedEmail) {
-                        userSession.setUser({
-                            id: '',
-                            email: storedEmail,
-                            role: storedRole,
-                        });
-                    }
                     setIsAuthenticated(true);
-
                 } catch (err) {
                     console.log("Error while refreshing: ", err);
                     setIsAuthenticated(false);
                 }
             }
-
             setIsChecking(false);
         };
 

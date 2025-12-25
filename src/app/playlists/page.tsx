@@ -1,50 +1,342 @@
-import { Plus, Play } from '@/lib/icons';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Play, Trash, Edit, X } from '@/lib/icons';
+import { playlistService } from '@/services/playlistService';
+import type { ApiPlaylist } from '@/types';
 import '@/styles/playlists-page.css';
 
-const playlistsData = [
-    { id: 1, title: 'Chill Vibes', songCount: 48, image: 'https://i.scdn.co/image/ab67616d0000b273e8e28219724c2423afa4d320' },
-    { id: 2, title: 'Workout Hits', songCount: 65, image: 'https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937' },
-    { id: 3, title: 'Road Trip', songCount: 34, image: 'https://i.scdn.co/image/ab67616d0000b273d9194aa18fa4c9362b47464f' },
-    { id: 4, title: 'Party Mix', songCount: 78, image: 'https://i.scdn.co/image/ab67616d0000b2731dc7483a9e6d7e85ee26bf70' },
-    { id: 5, title: 'Study Session', songCount: 52, image: 'https://i.scdn.co/image/ab67616d0000b273e3e3b64cea45265469db3f8f' },
-    { id: 6, title: 'Throwback 2010s', songCount: 89, image: 'https://i.scdn.co/image/ab67616d0000b273447b6f18e9541b78a428f5c8' },
-    { id: 7, title: 'Indie Discoveries', songCount: 41, image: 'https://i.scdn.co/image/ab67616d0000b273b6d4566db0d12894a1a3b7a2' },
-    { id: 8, title: 'Late Night Jazz', songCount: 27, image: 'https://i.scdn.co/image/ab67616d0000b2730e8a7f7e5d58a0c7d4f8e112' },
-];
+// Modal for creating/editing playlist
+interface PlaylistModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (name: string) => void;
+    initialName?: string;
+    title: string;
+    isLoading?: boolean;
+}
+
+const PlaylistModal = ({ isOpen, onClose, onSubmit, initialName = '', title, isLoading }: PlaylistModalProps) => {
+    const [name, setName] = useState(initialName);
+
+    useEffect(() => {
+        setName(initialName);
+    }, [initialName]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (name.trim()) {
+            onSubmit(name.trim());
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>{title}</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body">
+                        <label htmlFor="playlist-name">Playlist Name</label>
+                        <input
+                            id="playlist-name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Enter playlist name"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn-submit" disabled={!name.trim() || isLoading}>
+                            {isLoading ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+// Confirm delete modal
+interface DeleteModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    playlistName: string;
+    isLoading?: boolean;
+}
+
+const DeleteModal = ({ isOpen, onClose, onConfirm, playlistName, isLoading }: DeleteModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>Delete Playlist</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X />
+                    </button>
+                </div>
+                <div className="modal-body">
+                    <p>Are you sure you want to delete "<strong>{playlistName}</strong>"? This action cannot be undone.</p>
+                </div>
+                <div className="modal-footer">
+                    <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>
+                        Cancel
+                    </button>
+                    <button type="button" className="btn-delete" onClick={onConfirm} disabled={isLoading}>
+                        {isLoading ? 'Deleting...' : 'Delete'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const PlaylistsPage = () => {
+    const navigate = useNavigate();
+    const [playlists, setPlaylists] = useState<ApiPlaylist[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Modal states
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedPlaylist, setSelectedPlaylist] = useState<ApiPlaylist | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Fetch playlists
+    const fetchPlaylists = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await playlistService.getPlaylists();
+            setPlaylists(data);
+        } catch (err) {
+            console.error('Failed to fetch playlists:', err);
+            setError('Failed to load playlists. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchPlaylists();
+    }, [fetchPlaylists]);
+
+    // Create playlist
+    const handleCreatePlaylist = async (name: string) => {
+        try {
+            setIsSubmitting(true);
+            await playlistService.createPlaylist({ name });
+            setIsCreateModalOpen(false);
+            fetchPlaylists();
+        } catch (err) {
+            console.error('Failed to create playlist:', err);
+            setError('Failed to create playlist. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Edit playlist
+    const handleEditPlaylist = async (name: string) => {
+        if (!selectedPlaylist) return;
+        try {
+            setIsSubmitting(true);
+            await playlistService.updatePlaylist(String(selectedPlaylist.id), { name });
+            setIsEditModalOpen(false);
+            setSelectedPlaylist(null);
+            fetchPlaylists();
+        } catch (err) {
+            console.error('Failed to update playlist:', err);
+            setError('Failed to update playlist. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Delete playlist
+    const handleDeletePlaylist = async () => {
+        if (!selectedPlaylist) return;
+        try {
+            setIsSubmitting(true);
+            await playlistService.deletePlaylist(String(selectedPlaylist.id));
+            setIsDeleteModalOpen(false);
+            setSelectedPlaylist(null);
+            fetchPlaylists();
+        } catch (err) {
+            console.error('Failed to delete playlist:', err);
+            setError('Failed to delete playlist. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Open edit modal
+    const openEditModal = (playlist: ApiPlaylist, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedPlaylist(playlist);
+        setIsEditModalOpen(true);
+    };
+
+    // Open delete modal
+    const openDeleteModal = (playlist: ApiPlaylist, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedPlaylist(playlist);
+        setIsDeleteModalOpen(true);
+    };
+
+    // Navigate to playlist detail
+    const handlePlaylistClick = (playlistId: number) => {
+        navigate(`/home/playlists/${playlistId}`);
+    };
+
+    // Generate gradient colors for playlists without images
+    const getGradientColor = (index: number) => {
+        const gradients = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+            'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
+        ];
+        return gradients[index % gradients.length];
+    };
+
     return (
         <div className="playlists-page">
             <div className="page-header">
                 <h1>Playlists</h1>
-                <button className="add-playlist-btn">
+                <button className="add-playlist-btn" onClick={() => setIsCreateModalOpen(true)}>
                     <Plus />
                     <span>Create Playlist</span>
                 </button>
             </div>
 
-            <div className="playlists-grid">
-                {playlistsData.map((playlist) => (
-                    <div key={playlist.id} className="playlist-card">
-                        <div className="playlist-image-container">
-                            <div className="playlist-image" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                                <img
-                                    src={playlist.image}
-                                    alt={playlist.title}
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = '/placeholders/music-track.svg';
-                                    }}
-                                />
+            {error && (
+                <div className="error-message">
+                    <p>{error}</p>
+                    <button onClick={() => fetchPlaylists()}>Try again</button>
+                </div>
+            )}
+
+            {isLoading ? (
+                <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Loading playlists...</p>
+                </div>
+            ) : playlists.length === 0 ? (
+                <div className="empty-state">
+                    <div className="empty-icon">🎵</div>
+                    <h2>No playlists yet</h2>
+                    <p>Create your first playlist to start organizing your music.</p>
+                    <button className="add-playlist-btn" onClick={() => setIsCreateModalOpen(true)}>
+                        <Plus />
+                        <span>Create Playlist</span>
+                    </button>
+                </div>
+            ) : (
+                <div className="playlists-grid">
+                    {playlists.map((playlist, index) => (
+                        <div 
+                            key={playlist.id} 
+                            className="playlist-card"
+                            onClick={() => handlePlaylistClick(playlist.id)}
+                        >
+                            <div className="playlist-image-container">
+                                <div 
+                                    className="playlist-image" 
+                                    style={{ background: getGradientColor(index) }}
+                                >
+                                    {playlist.playlistTracks.length > 0 && playlist.playlistTracks[0]?.music?.artist_profiles?.photo_url ? (
+                                        <img
+                                            src={playlist.playlistTracks[0].music.artist_profiles.photo_url}
+                                            alt={playlist.name}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="playlist-icon">🎵</div>
+                                    )}
+                                </div>
+                                <button className="play-btn" onClick={(e) => e.stopPropagation()}>
+                                    <Play />
+                                </button>
                             </div>
-                            <button className="play-btn">
-                                <Play />
-                            </button>
+                            <h3 className="playlist-title">{playlist.name}</h3>
+                            <p className="playlist-meta">
+                                {playlist.playlistTracks.length} {playlist.playlistTracks.length === 1 ? 'song' : 'songs'}
+                            </p>
+                            <div className="playlist-actions">
+                                <button 
+                                    className="action-btn edit-btn" 
+                                    onClick={(e) => openEditModal(playlist, e)}
+                                    title="Edit playlist"
+                                >
+                                    <Edit />
+                                </button>
+                                <button 
+                                    className="action-btn delete-btn" 
+                                    onClick={(e) => openDeleteModal(playlist, e)}
+                                    title="Delete playlist"
+                                >
+                                    <Trash />
+                                </button>
+                            </div>
                         </div>
-                        <h3 className="playlist-title">{playlist.title}</h3>
-                        <p className="playlist-meta">{playlist.songCount} songs</p>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Create Playlist Modal */}
+            <PlaylistModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSubmit={handleCreatePlaylist}
+                title="Create Playlist"
+                isLoading={isSubmitting}
+            />
+
+            {/* Edit Playlist Modal */}
+            <PlaylistModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedPlaylist(null);
+                }}
+                onSubmit={handleEditPlaylist}
+                initialName={selectedPlaylist?.name || ''}
+                title="Edit Playlist"
+                isLoading={isSubmitting}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setSelectedPlaylist(null);
+                }}
+                onConfirm={handleDeletePlaylist}
+                playlistName={selectedPlaylist?.name || ''}
+                isLoading={isSubmitting}
+            />
         </div>
     );
 };

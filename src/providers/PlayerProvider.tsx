@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Track, PlayerState } from '@/types';
 
@@ -22,29 +22,29 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         queue: [],
     });
 
-    const play = (track: Track) => {
+    const play = useCallback((track: Track) => {
         setState((prev) => ({ ...prev, currentTrack: track, isPlaying: true, currentTime: 0 }));
-    };
+    }, []);
 
-    const pause = () => {
+    const pause = useCallback(() => {
         setState((prev) => ({ ...prev, isPlaying: false }));
-    };
+    }, []);
 
-    const resume = () => {
+    const resume = useCallback(() => {
         setState((prev) => ({ ...prev, isPlaying: true }));
-    };
+    }, []);
 
-    const setVolume = (volume: number) => {
+    const setVolume = useCallback((volume: number) => {
         setState((prev) => ({ ...prev, volume }));
-    };
+    }, []);
 
-    const seek = (time: number) => {
+    const seek = useCallback((time: number) => {
         setState((prev) => ({ ...prev, currentTime: time }));
-    };
+    }, []);
 
-    const addToQueue = (track: Track) => {
+    const addToQueue = useCallback((track: Track) => {
         setState((prev) => ({ ...prev, queue: [...prev.queue, track] }));
-    };
+    }, []);
 
     return (
         <PlayerContext.Provider value={{ ...state, play, pause, resume, setVolume, seek, addToQueue }}>

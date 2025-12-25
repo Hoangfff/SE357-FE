@@ -132,6 +132,14 @@ axiosInstance.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
+        // Let the browser set proper multipart boundaries when sending FormData
+        if (config.data instanceof FormData) {
+            if (config.headers && 'Content-Type' in config.headers) {
+                delete (config.headers as Record<string, unknown>)['Content-Type'];
+            }
+        }
+
+
         // Remove Content-Type for FormData to let browser set it with boundary
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];

@@ -23,6 +23,7 @@ import HelpCenterPage from './app/admin/help/page'
 
 // Import new pages
 import PlaylistsPage from './app/playlists/page'
+import PlaylistDetailPage from './app/playlists/[id]/page'
 import LikedSongsPage from './app/liked-songs/page'
 import AlbumsPage from './app/albums/page'
 import ArtistsPage from './app/artists/page'
@@ -43,6 +44,7 @@ import MyPerformancePage from './app/artist/performance/page'
 
 // Auth protection
 import ProtectedRoute from './components/ProtectedRoute'
+import { PlayerProvider } from './providers/PlayerProvider'
 
 // Create router with layout-based structure
 const router = createBrowserRouter([
@@ -83,6 +85,10 @@ const router = createBrowserRouter([
       {
         path: 'playlists',
         element: <PlaylistsPage />,
+      },
+      {
+        path: 'playlists/:id',
+        element: <PlaylistDetailPage />,
       },
       {
         path: 'liked-songs',
@@ -169,6 +175,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <PlayerProvider>
+      <RouterProvider router={router} />
+    </PlayerProvider>
   </StrictMode>,
 )
