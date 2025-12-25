@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, User } from 'lucide-react';
 import ActivitiesTable from '../components/ActivitiesTable';
 import AdminFooter from '../components/AdminFooter';
@@ -40,6 +40,9 @@ const AccountsPage = () => {
     const [isAssigningRole, setIsAssigningRole] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Ref for click outside detection
+    const searchWrapperRef = useRef<HTMLDivElement>(null);
+
     // Debounced search
     const searchAccounts = useCallback(async (query: string) => {
         if (!query.trim()) {
@@ -70,10 +73,24 @@ const AccountsPage = () => {
         return () => clearTimeout(timeoutId);
     }, [searchQuery, searchAccounts]);
 
+    // Click outside handler to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+                setShowSearchDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     // Fetch user details when selecting an account
     const handleSelectAccount = async (user: AdminUser) => {
         setShowSearchDropdown(false);
-        setSearchQuery(user.name);
+        setSearchQuery(''); // Clear search bar after selecting an account
         setIsLoading(true);
         setError(null);
 
@@ -103,10 +120,17 @@ const AccountsPage = () => {
 
         setIsAssigningRole(true);
         try {
-            await adminService.assignRole(selectedAccount.id, newRole);
-            // Refresh the account details
-            const details = await adminService.getUserDetails(selectedAccount.id);
-            setSelectedAccount(details as UserDetails);
+            const response = await adminService.assignRole(selectedAccount.id, newRole);
+
+            // Try to use the updated user from the response if available
+            if (response.user) {
+                setSelectedAccount(response.user as UserDetails);
+            } else {
+                // Fallback: Optimistically update the role in local state
+                // This avoids needing to call getUserDetails which may not exist
+                setSelectedAccount(prev => prev ? { ...prev, role: newRole } : null);
+            }
+
             setShowAssignRoleModal(false);
         } catch (err) {
             console.error('Failed to assign role:', err);
@@ -149,7 +173,7 @@ const AccountsPage = () => {
     return (
         <div style={pageContainerStyle}>
             {/* Search Bar */}
-            <div style={searchWrapperStyle}>
+            <div style={searchWrapperStyle} ref={searchWrapperRef}>
                 <div style={searchContainerStyle}>
                     <Search size={18} style={{ color: 'var(--text-secondary)' }} />
                     <input

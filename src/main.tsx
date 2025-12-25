@@ -40,6 +40,7 @@ import SearchPage from './app/search/page'
 import MyAlbumsPage from './app/artist/albums/page'
 import MyMusicPage from './app/artist/music/page'
 import ArtistProfilePage from './app/artist/profile/page'
+import MyPerformancePage from './app/artist/performance/page'
 
 // Auth protection
 import ProtectedRoute from './components/ProtectedRoute'
@@ -128,7 +129,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'artist/performance',
-        element: <div style={{ padding: '2rem' }}><h1>My Performance</h1><p>Coming soon...</p></div>,
+        element: <MyPerformancePage />,
       },
       {
         path: '*',

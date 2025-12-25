@@ -92,6 +92,29 @@ export const artistService = {
         return apiClient.delete<MessageResponse>(ENDPOINTS.artist.musicById(trackId));
     },
 
+    /**
+     * Upload a new track
+     * Supports either file upload or URL input
+     */
+    async uploadTrack(data: {
+        title: string;
+        genre?: string;
+        description?: string;
+        file?: File;
+        fileUrl?: string;
+    }): Promise<{ message: string; music: Track }> {
+        const formData = new FormData();
+        formData.append('title', data.title);
+        if (data.genre) formData.append('genre', data.genre);
+        if (data.description) formData.append('description', data.description);
+        if (data.file) {
+            formData.append('file', data.file);
+        } else if (data.fileUrl) {
+            formData.append('fileUrl', data.fileUrl);
+        }
+        return apiClient.post<{ message: string; music: Track }>(ENDPOINTS.artist.music, formData);
+    },
+
     // ==================== Music Player Events ====================
     // TODO: Implement music player integration when ready
 

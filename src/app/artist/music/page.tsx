@@ -8,6 +8,7 @@ import { ENDPOINTS } from '@/config/api';
 import { apiClient, type ApiError } from '@/lib/apiClient';
 import type { Track } from '@/types/artist';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import UploadMusicModal from '../components/UploadMusicModal';
 
 type ViewMode = 'list' | 'grid';
 type SortField = 'title' | 'createdAt' | 'voteCount';
