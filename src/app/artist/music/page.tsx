@@ -196,7 +196,6 @@ const MyMusicPage = () => {
             {/* Toolbar */}
             <div className="music-toolbar">
                 <button
-                    <button
                     className="add-music-btn"
                     onClick={() => setIsUploadModalOpen(true)}
                     title="Upload new track"
