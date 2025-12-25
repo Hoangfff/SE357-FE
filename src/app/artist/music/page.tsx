@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEv
 import { ArrowUpDown, Filter, Grid, List, Loader2, MoreHorizontal, Music, Play, Search, Trash2, Upload as UploadIcon, X } from 'lucide-react';
 import '@/styles/my-music-page.css';
 import { artistService } from '@/services/artistService';
+import { musicService } from '@/services/musicService';
 import { ENDPOINTS } from '@/config/api';
 import { apiClient, type ApiError } from '@/lib/apiClient';
 import type { Track } from '@/types/artist';
+import { usePlayer } from '@/providers/PlayerProvider';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
-import UploadMusicModal from '../components/UploadMusicModal';
 
 type ViewMode = 'list' | 'grid';
 type SortField = 'title' | 'createdAt' | 'voteCount';
@@ -26,6 +27,10 @@ const MyMusicPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortField] = useState<SortField>('createdAt');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+    // Player
+    const { play } = usePlayer();
+    const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
 
     // Delete modal state
     const [deleteModal, setDeleteModal] = useState<{
@@ -80,8 +85,47 @@ const MyMusicPage = () => {
     };
 
     // Play track handler
-    const handlePlayTrack = (track: Track) => {
-        artistService.playAlbum([track]);
+    const handlePlayTrack = async (track: Track) => {
+        const fallbackUrl = track.fileUrl;
+        setPlayingTrackId(track.id);
+
+        try {
+            const streamUrl = await musicService.getStreamUrl(String(track.id), fallbackUrl);
+            const audioUrl = streamUrl || fallbackUrl;
+
+            if (!audioUrl) {
+                setError('No audio source available for this track.');
+                return;
+            }
+
+            play({
+                id: String(track.id),
+                title: track.title,
+                artist: 'You', // Artist's own music
+                album: track.albumTracks?.[0]?.albums?.title,
+                duration: 0,
+                coverUrl: track.albumTracks?.[0]?.albums?.coverUrl || undefined,
+                audioUrl,
+            });
+        } catch (err) {
+            console.error('Failed to start playback:', err);
+            // Fallback to direct file URL
+            if (fallbackUrl) {
+                play({
+                    id: String(track.id),
+                    title: track.title,
+                    artist: 'You',
+                    album: track.albumTracks?.[0]?.albums?.title,
+                    duration: 0,
+                    coverUrl: track.albumTracks?.[0]?.albums?.coverUrl || undefined,
+                    audioUrl: fallbackUrl,
+                });
+            } else {
+                setError('Could not play this track.');
+            }
+        } finally {
+            setPlayingTrackId(null);
+        }
     };
 
     // Upload form handlers
@@ -282,8 +326,9 @@ const MyMusicPage = () => {
                                     <button
                                         className="play-btn-small"
                                         onClick={() => handlePlayTrack(track)}
+                                        disabled={playingTrackId === track.id}
                                     >
-                                        <Play size={14} />
+                                        {playingTrackId === track.id ? <Loader2 size={14} className="spinner" /> : <Play size={14} />}
                                     </button>
                                 </div>
 
@@ -350,8 +395,9 @@ const MyMusicPage = () => {
                                     <button
                                         className="play-btn-overlay"
                                         onClick={() => handlePlayTrack(track)}
+                                        disabled={playingTrackId === track.id}
                                     >
-                                        <Play size={24} />
+                                        {playingTrackId === track.id ? <Loader2 size={24} className="spinner" /> : <Play size={24} />}
                                     </button>
                                 </div>
                                 <div className="track-card-info">
